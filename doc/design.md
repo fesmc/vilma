@@ -387,7 +387,7 @@ overridable to the observed-flattening value (§5c). Validated (`test_rotation`)
 **5c — feedback into the SLE.** The centrifugal potential of `m` perturbs the sea
 surface and deforms the solid, adding a degree-2 contribution to relative sea level
 `s_rot = N_rot − u_rot` with (Adhikari et al. 2016, eq. 8) `N_rot = (1+k^T)Λ/g`,
-`u_rot = h^T Λ/g`, `Λ = Ω²a² sinθcosθ(m₁cosφ+m₂sinφ)`. The VE `(1+k^T)`,`h^T` reuse
+`u_rot = h^T Λ/g`, `Λ = −Ω²a² sinθcosθ(m₁cosφ+m₂sinφ)`. The VE `(1+k^T)`,`h^T` reuse
 the 5b tidal channel (which now exposes the uplift readout); the rotational fields
 reuse the `m`-forced channel exactly. `s_rot` enters the SLE geometry (`Sraw`) but NOT
 the surface mass load — the rotational potential forces the Earth through the tidal

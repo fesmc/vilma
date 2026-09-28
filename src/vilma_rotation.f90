@@ -195,11 +195,15 @@ contains
    subroutine rotation_s_rot(self, sht, srot)
       !! Build the rotational-feedback contribution to relative sea level on the Gauss
       !! grid, s_rot = N_rot − u_rot, from the current self%m (call after solve_m). The
-      !! centrifugal potential Λ = Ω²a² sinθcosθ (m₁cosφ + m₂sinφ) is a degree-2 order-1
+      !! centrifugal potential Λ = −Ω²a² sinθcosθ (m₁cosφ + m₂sinφ) is a degree-2 order-1
       !! field; the sea surface and solid respond with the tidal Love numbers (Adhikari
-      !! et al. 2016, eq. 8): N_rot = (1+k^T)Λ/g, u_rot = h^T Λ/g. The VE (1+k^T),h^T are
-      !! the tidal channel's affine response to m: total potential coeff = m + P_ind with
-      !! P_ind = k^T_e m − dF_tidal, uplift coeff C_u = U_e m + dU_tidal (so g·C_u = h^T∗m).
+      !! et al. 2016, eq. 8): N_rot = (1+k^T)Λ/g, u_rot = h^T Λ/g. The sign follows from
+      !! Λ = ½Ω²a² sin²θ' about the displaced pole ẑ + m₁x̂ + m₂ŷ, where cosθ' = cosθ +
+      !! sinθ(m₁cosφ + m₂sinφ): a point the pole moves toward comes closer to the axis,
+      !! so sea level falls there. The VE (1+k^T),h^T are the tidal channel's affine
+      !! response to m, which is linear, so the sign is applied to the assembled field:
+      !! total potential coeff = m + P_ind with P_ind = k^T_e m − dF_tidal, uplift coeff
+      !! C_u = U_e m + dU_tidal (so g·C_u = h^T∗m).
       type(rotation_state), intent(inout) :: self
       type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(out)   :: srot(:,:)
@@ -211,15 +215,15 @@ contains
       end if
       cN = self%m + (self%kTe*self%m - self%tidal_ch%dF)     ! (1+k^T)∗m total potential coeff
       cU = self%tidal_ch%Ue*self%m + self%tidal_ch%dU        ! uplift coeff (g·cU = h^T∗m)
-      ! N_rot = (Ω²a²/g)·γ·[Re(cN)cosφ+Im(cN)sinφ]; u_rot = Ω²a²·γ·[Re(cU)cosφ+Im(cU)sinφ]
+      ! N_rot = −(Ω²a²/g)·γ·[Re(cN)cosφ+Im(cN)sinφ]; u_rot = −Ω²a²·γ·[Re(cU)cosφ+Im(cU)sinφ]
       kN = self%Omega**2 * self%a**2 / self%g
       ku = self%Omega**2 * self%a**2
       do il = 1, sht%nlat
          gam = sin(sht%colat(il))*cos(sht%colat(il))
          do ip = 1, sht%nphi
             cphi = cos(sht%lon(ip));  sphi = sin(sht%lon(ip))
-            srot(ip,il) = gam*( kN*(real(cN,wp)*cphi + aimag(cN)*sphi) &
-                              -  ku*(real(cU,wp)*cphi + aimag(cU)*sphi) )
+            srot(ip,il) = -gam*( kN*(real(cN,wp)*cphi + aimag(cN)*sphi) &
+                               -  ku*(real(cU,wp)*cphi + aimag(cU)*sphi) )
          end do
       end do
    end subroutine rotation_s_rot

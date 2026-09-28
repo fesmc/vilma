@@ -51,10 +51,13 @@ channel memories are committed once with the converged $\mathbf{m}$.
 The centrifugal potential of the perturbed rotation,
 
 $$
-\Lambda = \Omega^{2} a^{2}\,\sin\theta\cos\theta\,(m_1\cos\phi + m_2\sin\phi),
+\Lambda = -\Omega^{2} a^{2}\,\sin\theta\cos\theta\,(m_1\cos\phi + m_2\sin\phi),
 $$
 
-is a degree-2, order-1 field. It enters the SLE as the rotational sea-surface
+is a degree-2, order-1 field. It is the first-order change of
+$\tfrac12\Omega^2 a^2\sin^2\theta'$ about the displaced pole
+$\hat z + m_1\hat x + m_2\hat y$: a point the pole moves toward comes closer to the
+spin axis, so sea level falls there. It enters the SLE as the rotational sea-surface
 contribution $s_{\rm rot} = (1+k^{T})\Lambda/g - h^{T}\Lambda/g$ (geoid minus
 uplift), held constant across the SLE solve while the caller iterates the
 rotation ↔ SLE fixed point. The rotational potential is thus treated as a load

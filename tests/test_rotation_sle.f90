@@ -2,17 +2,21 @@ program test_rotation_sle
    !! Rung-5c validation: rotational feedback coupled INTO the sea-level equation.
    !! The centrifugal potential of polar motion m perturbs the geoid and deforms the
    !! solid (Adhikari et al. 2016, eq. 8): N_rot = (1+k^T)Λ/g, u_rot = h^T Λ/g, with
-   !! Λ = Ω²a² sinθcosθ(m₁cosφ+m₂sinφ); it enters the SLE as s_rot = N_rot − u_rot.
+   !! Λ = −Ω²a² sinθcosθ(m₁cosφ+m₂sinφ); it enters the SLE as s_rot = N_rot − u_rot.
    !! m in turn responds to the ice + ocean load, so {sea level, m} is a fixed point.
    !!
    !! No published SLE+rotation benchmark exists (Spada Test 3/2 gives only m(t)), so
    !! we validate by consistency + the analytic elastic relation:
    !!   (1) HOOK OFF: sle_solve with s_rot ≡ 0 is bit-for-bit the no-rotation solve.
-   !!   (2) FIELD vs Adhikari eq. 8: pointwise s_rot/Λ = (1+k^T_e − h^T_e)/g (elastic).
+   !!   (2) FIELD vs Adhikari eq. 8: s_rot = (1+k^T_e − h^T_e)Λ/g (elastic), with Λ the
+   !!       EXACT change of ½Ω²a² sin²θ' about the displaced pole ẑ + m₁x̂ + m₂ŷ, built
+   !!       here from geometry, not from the formula the model uses (so it pins the sign).
    !!   (3) MASS: the rotation-coupled SLE still conserves ocean mass.
    !!   (4) FIXED POINT: the rotation ↔ SLE iteration converges; the ocean feedback on
    !!       m is a small correction to the ice-only polar motion.
    !!   (5) FINGERPRINT: s_rot is a degree-2 order-1, ~m-scale pattern.
+   !!   (6) DIRECTION: the pole moves away from the cap (arg m = λ_c + π), and sea level
+   !!       rises at the cap centre, which the pole's move takes farther from the axis.
    use vilma_precision,       only: wp
    use vilma_constants,       only: omega_earth
    use vilma_earth_structure, only: earth_model, build_M3L70V01
@@ -37,7 +41,8 @@ program test_rotation_sle
    type(rotation_state)   :: rot
    real(wp), allocatable  :: d_ice(:,:), ice(:,:), topo0(:,:), rsl(:,:), rsl0(:,:), C(:,:)
    real(wp), allocatable  :: srot(:,:), srot_prev(:,:), lam(:,:), load(:,:)
-   real(wp) :: dt, dmax, expected, relfield, mcpl, mice
+   real(wp) :: dt, dmax, expected, relfield, mcpl, mice, cp, dphase, sc
+   integer  :: ilc, ipc
    complex(wp) :: m_ice
    integer  :: il, ip, iter
    logical  :: ok
@@ -106,25 +111,23 @@ program test_rotation_sle
       write(*,'(a)') '      FAIL: rotation broke ocean-mass conservation'; ok = .false.
    end if
 
-   ! --- (2) field vs Adhikari eq. 8: s_rot/Λ = (1+k^T_e − h^T_e)/g pointwise ----
+   ! --- (2) field vs Adhikari eq. 8: s_rot = (1+k^T_e − h^T_e)Λ/g, Λ exact -----
+   ! Λ = ½Ω²a²(sin²θ' − sin²θ) about the displaced pole, cosθ' = (cosθ + sinθ(m₁cosφ +
+   ! m₂sinφ))/√(1+|m|²). Its O(m²) remainder is ~|m| of the field, far below the tolerance.
    do il = 1, sht%nlat
       do ip = 1, sht%nphi
-         lam(ip,il) = omega_earth**2*rot%a**2*sin(sht%colat(il))*cos(sht%colat(il)) &
-                    * (real(rot%m,wp)*cos(sht%lon(ip)) + aimag(rot%m)*sin(sht%lon(ip)))
+         cp = (cos(sht%colat(il)) + sin(sht%colat(il)) &
+              * (real(rot%m,wp)*cos(sht%lon(ip)) + aimag(rot%m)*sin(sht%lon(ip)))) &
+              / sqrt(1.0_wp + abs(rot%m)**2)
+         lam(ip,il) = 0.5_wp*omega_earth**2*rot%a**2*(cos(sht%colat(il))**2 - cp**2)
       end do
    end do
    expected = (1.0_wp + rot%kTe - rot%hTe)/rot%g
-   relfield = 0.0_wp
-   do il = 1, sht%nlat
-      do ip = 1, sht%nphi
-         if (abs(lam(ip,il)) > 1.0e-3_wp*maxval(abs(lam))) &
-            relfield = max(relfield, abs(srot(ip,il)/lam(ip,il) - expected)/abs(expected))
-      end do
-   end do
+   relfield = maxval(abs(srot - expected*lam))/maxval(abs(expected*lam))
    write(*,'(a)') ''
-   write(*,'(a)') ' (2) rotational field vs Adhikari eq. 8 (elastic)'
+   write(*,'(a)') ' (2) rotational field vs Adhikari eq. 8 (elastic, exact Λ)'
    write(*,'(a,f8.4,a,f8.4)') '      k^T_e = ', rot%kTe, '   h^T_e = ', rot%hTe
-   write(*,'(a,es10.2)') '      max pointwise rel.err of s_rot/Λ = ', relfield
+   write(*,'(a,es10.2)') '      max|s_rot − (1+k−h)Λ/g| / max|(1+k−h)Λ/g| = ', relfield
    if (relfield > 1.0e-3_wp) then
       write(*,'(a)') '      FAIL: s_rot field off Adhikari eq. 8'; ok = .false.
    end if
@@ -146,10 +149,24 @@ program test_rotation_sle
       write(*,'(a)') '      FAIL: rotational fingerprint magnitude unphysical'; ok = .false.
    end if
 
+   ! --- (6) direction: pole away from the cap, sea level up under it -----------
+   dphase = modulo(atan2(aimag(m_ice), real(m_ice,wp)) - (lambdac + acos(-1.0_wp)) &
+                   + acos(-1.0_wp), 2.0_wp*acos(-1.0_wp)) - acos(-1.0_wp)
+   ilc = minloc(abs(sht%colat - thetac), 1);  ipc = minloc(abs(sht%lon - lambdac), 1)
+   sc  = srot(ipc,ilc)
+   write(*,'(a)') ''
+   write(*,'(a,f8.3,a,f8.3,a)') ' (6) arg m − (λ_c + π) = ', dphase/deg, ' deg ;  s_rot at cap centre = ', sc, ' m'
+   if (abs(dphase) > 1.0_wp*deg) then
+      write(*,'(a)') '      FAIL: the pole does not move away from the load'; ok = .false.
+   end if
+   if (sc <= 0.0_wp) then
+      write(*,'(a)') '      FAIL: rotational sea level does not rise where the pole moves away'; ok = .false.
+   end if
+
    write(*,'(a)') ''
    if (ok) then
       write(*,'(a)') ' PASS: rotational feedback couples into the SLE (hook, field,'
-      write(*,'(a)') '       mass, fixed point, fingerprint)'
+      write(*,'(a)') '       mass, fixed point, fingerprint, direction)'
    else
       write(*,'(a)') ' FAIL: rotation-SLE coupling did not all pass'
       call sht_grid_destroy(sht);  call radial_fe_finalize();  error stop 1
