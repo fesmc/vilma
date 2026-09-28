@@ -634,7 +634,7 @@ contains
 
       fnm = trim(self%out_dir)//'/vilma_h_ice.nc'
       call nc_create(fnm)
-      call nc_open(fnm, ncid)
+      call nc_open(fnm, ncid, writable=.TRUE.)
       call nc_write_dim(fnm, "epoch", x=[t0_kyr, t1_kyr], units="ka BP", unlimited=.TRUE., ncid=ncid)
       call nc_write_dim(fnm, "lon", x=self%lon, axis="x", ncid=ncid)
       call nc_write_dim(fnm, "lat", x=self%lat, axis="y", ncid=ncid)
@@ -679,7 +679,7 @@ contains
 
       fnm = trim(self%out_dir)//'/vilma_z_bed_eq.nc'
       call nc_create(fnm)
-      call nc_open(fnm, ncid)
+      call nc_open(fnm, ncid, writable=.TRUE.)
       call nc_write_dim(fnm, "epoch", x=0.0_wp, units="ka BP", unlimited=.TRUE., ncid=ncid)
       call nc_write_dim(fnm, "lon", x=self%lon, axis="x", ncid=ncid)
       call nc_write_dim(fnm, "lat", x=self%lat, axis="y", ncid=ncid)
@@ -690,7 +690,7 @@ contains
 
       fnm = trim(self%out_dir)//'/vilma_h_ice_eq.nc'
       call nc_create(fnm)
-      call nc_open(fnm, ncid)
+      call nc_open(fnm, ncid, writable=.TRUE.)
       call nc_write_dim(fnm, "epoch", x=0.0_wp, units="ka BP", unlimited=.TRUE., ncid=ncid)
       call nc_write_dim(fnm, "lon", x=self%lon, axis="x", ncid=ncid)
       call nc_write_dim(fnm, "lat", x=self%lat, axis="y", ncid=ncid)
@@ -708,7 +708,7 @@ contains
       character(len=512) :: fnm
       integer :: ncid
       fnm = trim(self%out_dir)//'/vilma_h_ice.nc'
-      call nc_open(fnm, ncid)
+      call nc_open(fnm, ncid, writable=.TRUE.)
       call nc_write(fnm, "Ice", self%h_ice_v, dims=["lon  ","lat  ","epoch"], &
                     start=[1,1,2], count=[self%nlon, self%nlat, 1], &
                     long_name="Ice thickness", units="m", ncid=ncid)
