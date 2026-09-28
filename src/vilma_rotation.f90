@@ -111,16 +111,18 @@ contains
 
    ! === rotation_state ========================================================
 
-   subroutine rotation_init(self, earth, sht, dt, k_s)
+   subroutine rotation_init(self, earth, sht, dt, k_s, CminusA)
       !! Build the two degree-2 channels, the elastic tidal Love number k^T_e, and
       !! the secular k_s = k^T_f (the relaxed tidal limit = elastic tidal solve of
       !! the model with every Maxwell layer fluidized). Pass k_s to override it with
-      !! an observed-flattening value (Mitrovica et al. 2005) for deep-time runs.
+      !! an observed-flattening value (Mitrovica et al. 2005) for deep-time runs,
+      !! and CminusA to override C − A (which normalises Ψ_L and sets k_s_flat).
       type(rotation_state), intent(inout) :: self
       type(earth_model),     intent(in)    :: earth
       type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(in)    :: dt
       real(wp), optional,    intent(in)    :: k_s
+      real(wp), optional,    intent(in)    :: CminusA
       type(radial_mesh) :: mesh
 
       call rotation_destroy(self)
@@ -137,6 +139,7 @@ contains
       ! relaxed limit k^T_f reproduces the Spada Test 3/2 benchmark; the observed-
       ! flattening closed form k_s = 3G(C−A)/(a⁵Ω²) avoids the lithosphere-thickness
       ! paradox and is the recommended deep-time value.
+      if (present(CminusA)) self%CminusA = CminusA
       self%k_s_fluid = fluid_tidal_k(earth, mesh)
       self%k_s_flat  = 3.0_wp*grav_G*self%CminusA/(self%a**5*self%Omega**2)
       ! Forward-Euler stability ceiling: Mk = (μ/η)Δt < 2 ⇒ Δt < 2/max(μ/η), with a

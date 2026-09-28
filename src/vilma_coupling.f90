@@ -311,7 +311,13 @@ contains
       ! fed back into the SLE; vilma_rotation).
       self%rotation%enabled = self%par%rotation
       if (self%par%rotation) then
-         call rotation_init(self%rotation, self%earth, self%sht, dt0)
+         if (self%par%rotation_k_s > 0.0_wp) then
+            call rotation_init(self%rotation, self%earth, self%sht, dt0, &
+                               k_s=self%par%rotation_k_s, CminusA=self%par%rotation_c_minus_a)
+         else
+            call rotation_init(self%rotation, self%earth, self%sht, dt0, &
+                               CminusA=self%par%rotation_c_minus_a)
+         end if
          self%rotation%enabled = .true.          ! init clears it; turn back on
          allocate(self%gg%s_rot(np,nl), source=0.0_wp)
       end if

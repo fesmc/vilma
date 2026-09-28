@@ -115,6 +115,9 @@ A few conventions worth knowing:
   treated as genuinely 3-D.
 - **Rotational feedback** (`rotation`) is **on by default** for real-Earth runs;
   set `rotation = .false.` for the non-rotating community benchmarks.
+  The secular Love number in the Liouville equation defaults to the model's own
+  fluid limit; `rotation_k_s` (> 0) prescribes it and `rotation_c_minus_a` sets
+  C − A (default 2.63e35 kg m²).
 - **Backend** is chosen by `solver`: `"v2"` (this model, default) or `"v1"`,
   the VILMA-v1 library behind the same driver, forcing and output for
   like-for-like comparison (requires a build with `vilma_v1=1`).

@@ -166,6 +166,11 @@ contains
          write(*,'(a,i0,a,i0,a)') ' visc3d split: ', se%resp%ne3d, &
               ' of ', se%resp%ne, ' radial elements laterally 3-D (rest advance as 1-D)'
       end if
+      if (se%rotation%enabled) then
+         write(*,'(a,f8.5,a,f8.5,a,f8.5,a,f8.5,a,f8.5,a,es10.3)') ' rotation: k_s=', se%rotation%k_s, &
+              ' (model fluid ', se%rotation%k_s_fluid, ', flattening ', se%rotation%k_s_flat, &
+              ')  k^T_e=', se%rotation%kTe, '  h^T_e=', se%rotation%hTe, '  C-A=', se%rotation%CminusA
+      end if
 
       ! The diagnostic output list. Polar motion is appended only when the
       ! rotation solver is actually integrating it -- see ROT_OUT_VARS above.

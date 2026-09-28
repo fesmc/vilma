@@ -94,6 +94,9 @@ module vilma_params
 
       ! --- rotational feedback (vilma_rotation) ------------------------------------
       logical  :: rotation = .true.          !! TPW feedback (on for real runs; off for non-rotating benchmarks)
+      real(wp) :: rotation_k_s = 0.0_wp      !! secular Love number k_s in the Liouville equation;
+                                             !! <= 0 uses the model's own fluid limit k^T_f
+      real(wp) :: rotation_c_minus_a = 2.63e35_wp !! C − A [kg m²], normalises the load inertia Ψ_L
 
       ! --- LGM-memory spin-up (vilma_coupling solid_earth_spinup) -------------------
       ! A model capability the host opts into. Relax under the start-slice ice while
@@ -284,6 +287,8 @@ contains
 
       ! rotation
       call nml_read(filename, g, "rotation",   p%rotation,   defaults_file=df)
+      call nml_read(filename, g, "rotation_k_s",       p%rotation_k_s,       defaults_file=df)
+      call nml_read(filename, g, "rotation_c_minus_a", p%rotation_c_minus_a, defaults_file=df)
 
       ! LGM-memory spin-up (equil_time_max given in YEARS, converted to SI below)
       equil_time_max_yr = p%equil_time_max/sec_per_year
@@ -385,7 +390,8 @@ contains
       write(u,'(a,es9.2,a,es8.1,a,es8.1,a,f5.2)') &
            '   dt:     init=', p%dt_init, &
            '  rtol=', p%rtol, '  atol=', p%atol, '  cfl=', p%cfl
-      write(u,'(a,l1)')       '   rotation: ', p%rotation
+      write(u,'(a,l1,a,f7.4,a,es10.3)') '   rotation: ', p%rotation, &
+           '  k_s=', p%rotation_k_s, '  C-A=', p%rotation_c_minus_a
       write(u,'(a,es9.2,a,es9.2,a,l1)') '   spinup: equil_time_max=', p%equil_time_max, &
            '  equil_rate_tol=', p%equil_rate_tol, '  pre_spinup_1d=', p%pre_spinup_1d
       if (p%l_visc_3d) then
