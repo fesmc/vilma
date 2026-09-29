@@ -371,9 +371,12 @@ step ALGEBRAIC in `m` (the affine begin/apply/commit structure of the field driv
     m_n = [ Ψ_L,n − dF_tidal/k_s ] / [ 1 − k^T_e/k_s ],
 
 then both channels' memory is advanced. The rigid inertia `I₁₃+iI₂₃ =
-−a⁴∫σ sinθcosθ e^{iφ}dΩ` is a DIRECT Gauss-grid quadrature of the load (3-D-ready —
-no spherical-harmonic normalization assumption; verified by reproducing the paper's
-published `G_cap/G_disc` to <0.5%). `k_s = k^T_f` from fluidizing the Maxwell mantle.
+−a⁴∫σ sinθcosθ e^{iφ}dΩ` is taken from the load's (2,1) coefficient Q,
+`I = −a⁴ conj(Q)/(3N₂₁)` (orthonormal, no Condon-Shortley phase), the same Gauss
+quadrature as a direct grid sum (3-D-ready; test_rotation_sle (8) checks the two
+agree to round-off, and the grid form reproduced the paper's published
+`G_cap/G_disc` to <0.5%). The rotational geoid and uplift are added to the SLE's
+spectral N and u (`rotation_add_srot_lm`), so rotation costs no grid pass. `k_s = k^T_f` from fluidizing the Maxwell mantle.
 
 **Pitfall (designed-in): the lithosphere-thickness paradox (Mitrovica et al. 2005).**
 The secular polar-motion slope is *pathologically* sensitive to `k_s` — a 0.5% change

@@ -39,8 +39,9 @@ perturbation from the surface load, $k^{L}$ and $k^{T}$ are the **loading** and
 $C-A$ is the moment difference.
 
 The implementation carries **two degree-2 viscoelastic channels** on the same
-per-degree operator — a *loading* channel forced by the rigid inertia (a direct
-Gauss-grid quadrature of the load, so no axisymmetry is assumed) and a *tidal*
+per-degree operator — a *loading* channel forced by the rigid inertia (from the
+load's (2,1) spherical-harmonic coefficient, i.e. Gauss quadrature of the actual
+load, so no axisymmetry is assumed) and a *tidal*
 channel forced by the centrifugal potential. Each carries its own Maxwell memory.
 Both channels are radially symmetric and relax on the same radial viscosity as
 the load response: a viscosity file's radial profile, taking the lateral geometric

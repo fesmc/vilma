@@ -22,6 +22,8 @@ program test_rotation_sle
    !!   (7) STEPPING: one open step sub-cycled n times (rotation_open_step / trial /
    !!       close_step) is bit-for-bit n steps of 1/n the length, a repeated trial is
    !!       pure, and rotation_save_state / restore_state round-trip exactly.
+   !!   (8) INERTIA: the (2,1)-coefficient inertia equals a direct grid quadrature of
+   !!       −a⁴∫σ sinθcosθ e^{iφ} dΩ, computed here.
    use vilma_precision,       only: wp
    use vilma_constants,       only: omega_earth
    use vilma_earth_structure, only: earth_model, build_M3L70V01
@@ -30,9 +32,11 @@ program test_rotation_sle
    use vilma_sle,             only: sle_solve, sle_solver, sle_result
    use vilma_rotation,        only: rotation_destroy, rotation_s_rot, rotation_solve_m, rotation_begin_step, rotation_init, rotation_state, &
                                     rotation_open_step, rotation_trial, rotation_close_step, rotation_save_state, &
-                                    rotation_restore_state, rotation_get_memory, rotation_ne, ROT_NCOMP
+                                    rotation_restore_state, rotation_get_memory, rotation_ne, ROT_NCOMP, &
+                                    rotation_inertia21
    use vilma_viscoelastic,    only: NLAM
-   use vilma_sht,             only: sht_grid, sht_grid_init, sht_grid_destroy, sht_grid_synthesis
+   use vilma_sht,             only: sht_grid, sht_grid_init, sht_grid_destroy, sht_grid_synthesis, &
+                                    sht_grid_analysis, sht_grid_surface_integral
    implicit none
 
    real(wp), parameter :: deg = acos(-1.0_wp)/180.0_wp
@@ -47,7 +51,9 @@ program test_rotation_sle
    type(sle_solver)       :: sle
    type(sle_result)       :: res0, res1
    type(rotation_state)   :: rot, rot_a, rot_b
-   complex(wp), allocatable :: sig(:)
+   complex(wp), allocatable :: sig(:), ice_lm(:)
+   real(wp), allocatable  :: w13(:,:), w23(:,:)
+   complex(wp) :: Iq, Ic
    real(wp), allocatable  :: la(:,:,:), ta(:,:,:), lb(:,:,:), tb(:,:,:)
    complex(wp) :: m_a, m_b, m_chk
    real(wp)    :: h
@@ -96,23 +102,25 @@ program test_rotation_sle
 
    ! --- ice-only elastic polar motion (reference for the feedback size) --------
    call rotation_begin_step(rot, sht, dt)
-   call rotation_solve_m(rot, sht, rho_i*d_ice)
+   allocate(ice_lm(sht%nlm))
+   load = rho_i*d_ice
+   call sht_grid_analysis(sht, load, ice_lm)          ! overwrites load
+   call rotation_solve_m(rot, sht, ice_lm)
    m_ice = rot%m;  mice = abs(m_ice)/deg
 
    ! --- (4) rotation <-> SLE fixed point inside sle_solve (elastic; at rest) ----
    ! Report-only: converge against the resting channels without committing, so rot
    ! is left holding the converged step. The m of the solve must be the polar motion
-   ! of its own converged load (the closing trial), up to the load's SHT round trip.
+   ! of its own converged load (the closing trial).
    allocate(sig(sht%nlm))
    rsl = 0.0_wp
    call sle_solve(sle, sht, resp, d_ice, ice, topo0, rsl, C, res1, report_only=.true., &
                   sigma_lm=sig, rot=rot, rot_dt=dt)
    call rotation_s_rot(rot, sht, srot)
    mcpl = abs(rot%m)/deg
-   call sht_grid_synthesis(sht, sig, load)
    m_chk = rot%m
    call rotation_open_step(rot, sht, 0.0_wp)
-   call rotation_trial(rot, sht, load)
+   call rotation_trial(rot, sht, sig)
    write(*,'(a)') ''
    write(*,'(a)') ' (4) rotation <-> SLE fixed point inside sle_solve'
    write(*,'(a,i0,a,es10.2,a,es10.2)') '      inner iterations ', res1%n_inner_last, &
@@ -184,15 +192,14 @@ program test_rotation_sle
    ! --- (7) stepping: sub-cycling, trial purity, save/restore ------------------
    call rotation_init(rot_a, earth, sht, dt);  rot_a%enabled = .true.
    call rotation_init(rot_b, earth, sht, dt);  rot_b%enabled = .true.
-   load = rho_i*d_ice
    h = 4.0_wp*rot_a%dt_fe_max
    call rotation_open_step(rot_a, sht, h)                ! one step, sub-cycled 4 times
-   call rotation_trial(rot_a, sht, load)
-   call rotation_trial(rot_a, sht, load)            ! a repeat trial must change nothing
+   call rotation_trial(rot_a, sht, ice_lm)
+   call rotation_trial(rot_a, sht, ice_lm)          ! a repeat trial must change nothing
    call rotation_close_step(rot_a, sht)
    do k = 1, 4                                      ! four steps of h/4
       call rotation_open_step(rot_b, sht, 0.25_wp*h)
-      call rotation_trial(rot_b, sht, load)
+      call rotation_trial(rot_b, sht, ice_lm)
       call rotation_close_step(rot_b, sht)
    end do
    allocate(la(NLAM, rotation_ne(rot_a), ROT_NCOMP), source=0.0_wp)
@@ -209,7 +216,7 @@ program test_rotation_sle
    end if
    call rotation_save_state(rot_b)
    call rotation_open_step(rot_b, sht, h)
-   call rotation_trial(rot_b, sht, 2.0_wp*load)
+   call rotation_trial(rot_b, sht, 2.0_wp*ice_lm)
    call rotation_close_step(rot_b, sht)
    call rotation_restore_state(rot_b)
    call rotation_get_memory(rot_b, m_b, lb, tb)
@@ -220,10 +227,29 @@ program test_rotation_sle
    end if
    call rotation_destroy(rot_a);  call rotation_destroy(rot_b)
 
+   ! --- (8) inertia: (2,1) coefficient vs direct grid quadrature ---------------
+   ! The converged solve load of (4) (ice + ocean + off-axis structure), in grid form.
+   call sht_grid_synthesis(sht, sig, load)
+   allocate(w13(sht%nphi,sht%nlat), w23(sht%nphi,sht%nlat))
+   do il = 1, sht%nlat
+      do ip = 1, sht%nphi
+         w13(ip,il) = load(ip,il)*sin(sht%colat(il))*cos(sht%colat(il))*cos(sht%lon(ip))
+         w23(ip,il) = load(ip,il)*sin(sht%colat(il))*cos(sht%colat(il))*sin(sht%lon(ip))
+      end do
+   end do
+   Iq = cmplx(-rot%a**4*sht_grid_surface_integral(sht, w13), &
+              -rot%a**4*sht_grid_surface_integral(sht, w23), wp)
+   Ic = rotation_inertia21(sht, sig, rot%a)
+   write(*,'(a)') ''
+   write(*,'(a,es10.2)') ' (8) inertia: |I(coefficient) − I(quadrature)|/|I| = ', abs(Ic - Iq)/abs(Iq)
+   if (abs(Ic - Iq) > 1.0e-10_wp*abs(Iq)) then
+      write(*,'(a)') '      FAIL: the (2,1)-coefficient inertia differs from the quadrature'; ok = .false.
+   end if
+
    write(*,'(a)') ''
    if (ok) then
       write(*,'(a)') ' PASS: rotational feedback couples into the SLE (hook, field,'
-      write(*,'(a)') '       mass, fixed point, fingerprint, direction, stepping)'
+      write(*,'(a)') '       mass, fixed point, fingerprint, direction, stepping, inertia)'
    else
       write(*,'(a)') ' FAIL: rotation-SLE coupling did not all pass'
       call sht_grid_destroy(sht);  call radial_fe_finalize();  error stop 1

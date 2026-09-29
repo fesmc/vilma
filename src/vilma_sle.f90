@@ -33,7 +33,7 @@ module vilma_sle
    use vilma_constants, only: rho_ice, rho_water
    use vilma_sht,       only: sht_grid, sht_grid_surface_integral, sht_grid_analysis, sht_grid_synthesis
    use vilma_rotation,  only: rotation_state, rotation_open_step, rotation_trial, rotation_close_step, &
-                              rotation_s_rot
+                              rotation_add_srot_lm
    use vilma_response,  only: response_finalize_step, response_endpoint_converged, response_advance_endpoint, response_apply, response_prepare_endpoint, response_begin_step, response, response_init_elastic, response_init_ve, response_init_null
    implicit none
    private
@@ -169,11 +169,12 @@ contains
       complex(wp),      optional, intent(out) :: sigma_lm(:)
       !! rot, rot_dt (optional, together): rotational feedback, stepped with the solid
       !! Earth over this solve's step of length rot_dt [s]. Each inner iteration's load
-      !! sets the polar motion at the end of the step (rotation_trial), and its
-      !! rotational sea level s_rot = N_rot − u_rot (geoid minus uplift from the
-      !! centrifugal potential) enters that iteration's sea surface, so the rotation ↔
-      !! SLE fixed point converges inside this solve. s_rot enters the sea-surface
-      !! geometry (Sraw) but NOT the surface mass load that drives the load response:
+      !! (its (2,1) coefficient) sets the polar motion at the end of the step
+      !! (rotation_trial), and the rotational geoid N_rot and uplift u_rot are added to
+      !! that iteration's spectral N and u (rotation_add_srot_lm), so the rotation ↔
+      !! SLE fixed point converges inside this solve and res%N / res%u are the full
+      !! fields. s_rot = N_rot − u_rot enters the sea-surface geometry (Sraw) but NOT
+      !! the surface mass load that drives the load response:
       !! the rotational potential forces the Earth through vilma_rotation's own tidal
       !! channel, not as a surface mass. Mass is still conserved — Δφ is recomputed
       !! from Sraw including s_rot. The rotation is committed with the closing load
@@ -183,7 +184,7 @@ contains
       type(rotation_state), optional, intent(inout) :: rot
       real(wp),             optional, intent(in)    :: rot_dt
 
-      real(wp), allocatable :: load(:,:), u(:,:), N(:,:), Sraw(:,:), rsl_new(:,:), srot(:,:)
+      real(wp), allocatable :: load(:,:), u(:,:), N(:,:), Sraw(:,:), rsl_new(:,:)
       real(wp), allocatable :: C0(:,:), wcorr(:,:), C_next(:,:), d_ice_g(:,:)
       complex(wp), allocatable :: load_lm(:), u_lm(:), N_lm(:)
       real(wp) :: rho_ratio, ice_int, dphi, C_int, Cs_int, zeta_int, smax, dmax
@@ -223,7 +224,6 @@ contains
       if (present(rot)) rotate = rot%enabled
       if (rotate) then
          if (.not. present(rot_dt)) error stop 'sle_solve: rot needs rot_dt'
-         allocate(srot(np,nl))
          call system_clock(pca)
          call rotation_open_step(rot, sht, merge(0.0_wp, rot_dt, ronly))
          call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
@@ -311,23 +311,24 @@ contains
 
          do ii = 1, self%n_inner
             call assemble_load()
-            if (rotate) then                              ! before analysis overwrites load
-               call system_clock(pca)
-               call rotation_trial(rot, sht, load)
-               call rotation_s_rot(rot, sht, srot)
-               call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
-            end if
             call system_clock(pca)
             call sht_grid_analysis(sht, load, load_lm)            ! analysis overwrites load
             call system_clock(pcb);  self%t_sht = self%t_sht + real(pcb-pca,wp)/prate
             call response_apply(resp, sht, load_lm, u_lm, N_lm)
             call system_clock(pca);  self%t_apply = self%t_apply + real(pca-pcb,wp)/prate
+            if (rotate) then
+               ! rotational feedback: m at the end of the step from this load's (2,1)
+               ! coefficient, and its geoid / uplift added spectrally (s_rot = N_rot − u_rot)
+               call rotation_trial(rot, sht, load_lm)
+               call rotation_add_srot_lm(rot, sht, N_lm, u_lm)
+               call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
+               call system_clock(pca)
+            end if
             call sht_grid_synthesis(sht, u_lm, u)
             call sht_grid_synthesis(sht, N_lm, N)
             call system_clock(pcb);  self%t_sht = self%t_sht + real(pcb-pca,wp)/prate
 
             Sraw = N - u
-            if (rotate) Sraw = Sraw + srot              ! rotational feedback
             Cs_int = sht_grid_surface_integral(sht, C*Sraw)
             dphi   = (ice_int - Cs_int + zeta_int)/C_int ! mass-conservation offset
             rsl_new = Sraw + dphi                        ! full field, everywhere
@@ -374,11 +375,11 @@ contains
       ! coastline migration see the advanced memory.
       call assemble_load()
       call system_clock(pca)
-      if (rotate) call rotation_trial(rot, sht, load)   ! m with the closing load
-      call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
-      call system_clock(pca)
       call sht_grid_analysis(sht, load, load_lm)
       call system_clock(pcb);  self%t_sht = self%t_sht + real(pcb-pca,wp)/prate
+      if (rotate) call rotation_trial(rot, sht, load_lm)   ! m with the closing load
+      call system_clock(pca);  self%t_rot = self%t_rot + real(pca-pcb,wp)/prate
+      call system_clock(pcb)
       if (ronly) exit                    ! report only: do NOT advance the memory/time
       call response_advance_endpoint(resp, sht, load_lm)
       call system_clock(pca);  self%t_resp = self%t_resp + real(pca-pcb,wp)/prate
