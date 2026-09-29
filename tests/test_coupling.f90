@@ -15,6 +15,7 @@ program test_coupling
    use vilma_radial_fe,       only: radial_fe_finalize
    use vilma_sht,             only: sht_grid, sht_grid_init, sht_grid_destroy
    use vilma_coupling,        only: solid_earth_finalize, solid_earth_update, solid_earth_init, solid_earth
+   use vilma_response,        only: response_radial_rate
    implicit none
 
    integer, parameter :: LMAX = 16, NSTEP = 15
@@ -107,6 +108,7 @@ program test_coupling
    ! feedback). On-axis loads (the cap above) carry no (2,1) inertia, so use a load
    ! centred away from the pole here.
    call rotation_check()
+   call rotation_visc_check()
 
    call sht_grid_destroy(sht)
 
@@ -193,6 +195,41 @@ contains
       end if
       call solid_earth_finalize(se_on)
    end subroutine rotation_check
+
+   subroutine rotation_visc_check()
+      !! With a viscosity file, the rotation channels must relax on the response's
+      !! radial profile (response_radial_rate), not the layer table: equal rates in
+      !! both channels, and at a genuinely 3-D element (where the response keeps the
+      !! layer-table scalar) the lateral geometric mean, not that scalar.
+      type(vilma_param_class) :: pr
+      type(solid_earth)    :: se
+      real(wp), allocatable :: rate(:)
+      real(wp) :: dmax
+      integer  :: e
+      pr%lmax = LMAX;  pr%nlat = 2*LMAX;  pr%nphi = 4*LMAX
+      pr%rotation = .true.;  pr%l_visc_3d = .true.;  pr%visc_3d_file = "input/bagge2021.nc"
+      se%par = pr; call solid_earth_init(se, z_bed_eq, h_ice_eq)
+      rate  = response_radial_rate(se%resp)
+      dmax  = max(maxval(abs(se%rotation%load_ch%MkPerDt - rate)), &
+                  maxval(abs(se%rotation%tidal_ch%MkPerDt - rate)))
+      write(*,'(a)') ''
+      write(*,'(a,es10.2,a,i0,a,i0)') '   rotation viscosity: max|rate_rot − rate_resp| = ', dmax, &
+           '   3-D elements ', se%resp%ne3d, ' of ', se%resp%ne
+      if (dmax /= 0.0_wp) then
+         write(*,'(a)') '   FAIL: rotation channels do not relax on the response viscosity'; ok = .false.
+      end if
+      if (se%resp%ne3d == 0) then
+         write(*,'(a)') '   FAIL: the Bagge field gave no 3-D element to test'; ok = .false.
+      else
+         e = se%resp%e3d(1)
+         write(*,'(a,i0,a,es10.3,a,es10.3)') '   element ', e, ': rotation rate ', rate(e), &
+              '   layer-table rate ', se%resp%MkPerDt(e)
+         if (rate(e) == se%resp%MkPerDt(e)) then
+            write(*,'(a)') '   FAIL: 3-D element carries the layer-table rate'; ok = .false.
+         end if
+      end if
+      call solid_earth_finalize(se)
+   end subroutine rotation_visc_check
 
    subroutine make_load_offaxis(h_ice)
       !! A 2 km grounded cap centred at colat 35°, lon 90° (off the rotation axis, on

@@ -38,7 +38,10 @@ module vilma_rotation
    !!
    !! 3-D ready: I_rigid is a direct Gauss-grid quadrature of the actual load
    !! (any field), so no axisymmetric assumption enters; only the (1+k^L)/k^T
-   !! channels use the 1-D radial relaxation (laterally-varying η is rung 6).
+   !! channels are radially symmetric. They relax on the radial viscosity the load
+   !! response integrates (rotation_set_rate with response_radial_rate: a viscosity
+   !! file's radial profile, the lateral geometric mean where it varies laterally),
+   !! and on the layer table only when no file is read.
    use vilma_precision,       only: wp
    use vilma_constants,       only: pi, grav_G
    use vilma_earth_structure, only: earth_n_layers, earth_gravity_at, earth_model, RHEOL_FLUID
@@ -53,6 +56,7 @@ module vilma_rotation
    public :: rotation_state
    public :: channel_init, channel_set_dt, channel_begin, channel_commit, channel_destroy, rotation_init, rotation_begin_step, rotation_solve_m, rotation_s_rot, rotation_commit, rotation_update, rotation_destroy
    public :: rotation_ne, rotation_get_memory, rotation_set_memory, ROT_NCOMP
+   public :: rotation_set_rate
 
    integer, parameter :: JROT = 2          !! rotation is purely degree 2
    integer, parameter :: ROT_NCOMP = 6     !! packed memory components per channel:
@@ -142,10 +146,7 @@ contains
       if (present(CminusA)) self%CminusA = CminusA
       self%k_s_fluid = fluid_tidal_k(earth, mesh)
       self%k_s_flat  = 3.0_wp*grav_G*self%CminusA/(self%a**5*self%Omega**2)
-      ! Forward-Euler stability ceiling: Mk = (μ/η)Δt < 2 ⇒ Δt < 2/max(μ/η), with a
-      ! 0.5 safety factor. The driver sub-steps any coupling interval larger than this.
-      if (maxval(self%load_ch%MkPerDt) > 0.0_wp) &
-         self%dt_fe_max = 1.0_wp/maxval(self%load_ch%MkPerDt)
+      call set_dt_fe_max(self)
       if (present(k_s)) then
          self%k_s = k_s                       ! explicit override (e.g. observed flattening)
       else
@@ -153,6 +154,29 @@ contains
       end if
       self%m = (0.0_wp, 0.0_wp);  self%time = 0.0_wp
    end subroutine rotation_init
+
+   subroutine rotation_set_rate(self, MkPerDt)
+      !! Replace both channels' per-element Maxwell rate μ/η with the radial viscosity
+      !! the load response integrates (response_radial_rate), keeping their memory.
+      !! rotation_init builds the channels from the layer table; a run that reads its
+      !! viscosity from a file must call this, or the rotation relaxes on a different
+      !! Earth from the one the load deforms. Elastic/fluid elements carry rate 0.
+      type(rotation_state), intent(inout) :: self
+      real(wp),              intent(in)    :: MkPerDt(:)
+      if (size(MkPerDt) /= self%load_ch%ne) error stop 'rotation_set_rate: rate must be (ne)'
+      call channel_set_rate(self%load_ch, MkPerDt)
+      call channel_set_rate(self%tidal_ch, MkPerDt)
+      call set_dt_fe_max(self)
+   end subroutine rotation_set_rate
+
+   subroutine set_dt_fe_max(self)
+      !! Forward-Euler stability ceiling: Mk = (μ/η)Δt < 2 ⇒ Δt < 2/max(μ/η), with a
+      !! 0.5 safety factor. The driver sub-steps any coupling interval larger than this.
+      type(rotation_state), intent(inout) :: self
+      self%dt_fe_max = huge(1.0_wp)
+      if (maxval(self%load_ch%MkPerDt) > 0.0_wp) &
+         self%dt_fe_max = 1.0_wp/maxval(self%load_ch%MkPerDt)
+   end subroutine set_dt_fe_max
 
    subroutine rotation_begin_step(self, sht, dt)
       !! Open a timestep: set Δt and freeze both channels' relaxation drift from the
@@ -378,6 +402,14 @@ contains
    end function fluid_tidal_k
 
    ! === deg2_channel ==========================================================
+
+   subroutine channel_set_rate(self, MkPerDt)
+      !! Set the per-element rate μ/η and rescale Mk at the current Δt; memory kept.
+      type(deg2_channel), intent(inout) :: self
+      real(wp),           intent(in)    :: MkPerDt(:)
+      self%MkPerDt = MkPerDt
+      self%Mk      = self%MkPerDt*self%dt
+   end subroutine channel_set_rate
 
    subroutine channel_init(self, earth, mesh, dt, tidal)
       !! Assemble the degree-2 operator, the unit-forcing response (Fe + nodal U,V),

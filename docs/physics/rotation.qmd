@@ -42,6 +42,9 @@ The implementation carries **two degree-2 viscoelastic channels** on the same
 per-degree operator — a *loading* channel forced by the rigid inertia (a direct
 Gauss-grid quadrature of the load, so no axisymmetry is assumed) and a *tidal*
 channel forced by the centrifugal potential. Each carries its own Maxwell memory.
+Both channels are radially symmetric and relax on the same radial viscosity as
+the load response: a viscosity file's radial profile, taking the lateral geometric
+mean where the file varies laterally, and the layer table only when no file is read.
 The polar motion $\mathbf{m}$ is solved algebraically each step and is **affine**
 in the load, so it sits inside the SLE ↔ rotation fixed point safely; the
 channel memories are committed once with the converged $\mathbf{m}$.
