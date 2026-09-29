@@ -39,7 +39,7 @@ module vilma_coupling
                                  response_init_elastic, response_init_ve, response_init_null, RESP_VE
    use vilma_sle,             only: sle_solver, ocean_function
    use vilma_timestep,        only: stepper_advance, adaptive_stepper
-   use vilma_rotation,        only: rotation_destroy, rotation_update, rotation_s_rot, rotation_begin_step, rotation_init, rotation_state, &
+   use vilma_rotation,        only: rotation_destroy, rotation_init, rotation_state, &
                                     rotation_set_rate
    use vilma_remap,           only: remap_ll_gauss, remap_init, remap_to_gauss, remap_to_ll
    use vilma_v1,           only: vilma_v1_backend, vilma_v1_init, vilma_v1_update, vilma_v1_finalize, &
@@ -83,7 +83,6 @@ module vilma_coupling
                                                !! h_ice_eq). Both are fixed at init, so this
                                                !! is a RUN CONSTANT: built once in
                                                !! solid_earth_init, never refreshed.
-      real(wp), allocatable :: s_rot(:,:)      !! rotational-feedback RSL contribution [m] (if enabled)
    end type gauss_state
 
    type :: solid_earth
@@ -121,7 +120,6 @@ module vilma_coupling
       !! neither the solver nor the SLE, and so otherwise vanish into the driver's
       !! residual bucket. See sle_solver's accumulators for the SLE's own split.
       real(wp)                 :: t_remap = 0.0_wp  !! host<->Gauss remap, in and out
-      real(wp)                 :: t_rot   = 0.0_wp  !! polar motion: s_rot + sub-stepped update
       real(wp)                 :: t_solver = 0.0_wp !! wall-clock [s] inside the backend's own
          !! solve, comparable across backends: for "v1" it is VILMA-v1's time_evolution
          !! (excluding the Gauss<->VILMA-v1 remap, which is in %t_remap); for the native
@@ -322,7 +320,6 @@ contains
          self%rotation%enabled = .true.          ! init clears it; turn back on
          ! the channels relax on the response's radial viscosity, not the layer table
          call rotation_set_rate(self%rotation, response_radial_rate(self%resp))
-         allocate(self%gg%s_rot(np,nl), source=0.0_wp)
       end if
    end subroutine build_solver
 
@@ -364,10 +361,10 @@ contains
       type(solid_earth), intent(inout) :: self
       real(wp),           intent(in)    :: h_ice(:,:)   !! grounded-ice thickness [m] (host grid)
       real(wp),           intent(in)    :: dt_yr        !! interval to advance [years]
-      real(wp), allocatable :: ice_new(:,:), load(:,:)
-      real(wp) :: dt, t0, t1, dt_sub
-      integer  :: n_sub, k, np, nl
-      integer(kind=8) :: pc0, pc1, prate            ! PROFILE: see %t_remap, %t_rot
+      real(wp), allocatable :: ice_new(:,:)
+      real(wp) :: dt, t0, t1
+      integer  :: np, nl
+      integer(kind=8) :: pc0, pc1, prate            ! PROFILE: see %t_remap
 
       np = self%sht%nphi;  nl = self%sht%nlat
       dt = dt_yr*sec_per_year                       ! interface is years; integrator is seconds
@@ -418,27 +415,12 @@ contains
       end if
 
       if (self%rotation%enabled) then
-         ! Rotational feedback, coupled at the interval level (polar motion relaxes on
-         ! ~kyr ≫ the coupling interval; s_rot is held across the interval from the
-         ! entering polar motion and refreshed at the end — a predictor coupling).
-         call system_clock(pc0)
-         call rotation_begin_step(self%rotation, self%sht, dt)
-         call rotation_s_rot(self%rotation, self%sht, self%gg%s_rot)
-         call system_clock(pc1);  self%t_rot = self%t_rot + real(pc1-pc0,wp)/prate
+         ! Rotational feedback, stepped with the solid Earth: every SLE solve in the
+         ! stepper converges the rotation ↔ sea-level fixed point at the end of its own
+         ! sub-step (vilma_rotation: rotation_open_step / trial / close_step).
          call stepper_advance(self%stepper, self%sht, self%resp, self%sle, self%gg%z_bed_eq, &
                                    self%gg%h_ice, ice_new, self%gg%h_ice_eq, t0, t1, &
-                                   self%gg%rsl, self%gg%C, s_rot=self%gg%s_rot, sigma_out=self%sigma_lm)
-         ! Advance the polar motion to the end of the interval under the end-of-interval
-         ! load (held), sub-stepped to respect the Maxwell stability ceiling dt_fe_max.
-         allocate(load(np, nl))
-         call system_clock(pc0)
-         call sht_grid_synthesis(self%sht, self%sigma_lm, load)
-         n_sub  = max(1, ceiling(dt/self%rotation%dt_fe_max))
-         dt_sub = dt/real(n_sub, wp)
-         do k = 1, n_sub
-            call rotation_update(self%rotation, self%sht, load, dt_sub)
-         end do
-         call system_clock(pc1);  self%t_rot = self%t_rot + real(pc1-pc0,wp)/prate
+                                   self%gg%rsl, self%gg%C, rot=self%rotation, sigma_out=self%sigma_lm)
       else
          call stepper_advance(self%stepper, self%sht, self%resp, self%sle, self%gg%z_bed_eq, &
                                    self%gg%h_ice, ice_new, self%gg%h_ice_eq, t0, t1, &
@@ -635,7 +617,6 @@ contains
       if (allocated(self%gg%z_bed))    deallocate(self%gg%z_bed)
       if (allocated(self%gg%C))        deallocate(self%gg%C)
       if (allocated(self%gg%C0))       deallocate(self%gg%C0)
-      if (allocated(self%gg%s_rot))    deallocate(self%gg%s_rot)
       if (allocated(self%z_bed_eq))    deallocate(self%z_bed_eq)
       if (allocated(self%h_ice_eq))    deallocate(self%h_ice_eq)
       if (allocated(self%h_ice))       deallocate(self%h_ice)

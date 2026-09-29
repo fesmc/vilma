@@ -28,6 +28,7 @@ module vilma_timestep
    use vilma_sht,          only: sht_grid
    use vilma_response,     only: response_coarse_fine_error, response_stash_coarse, response_prime_sigma, response_restore_state, response_set_dt, response_save_state, response_memory_norm, response_max_rate, response
    use vilma_sle,          only: sle_solve, sle_solver, sle_result
+   use vilma_rotation,     only: rotation_state, rotation_save_state, rotation_restore_state
    use vilma_viscoelastic, only: scheme_order, scheme_is_implicit
    implicit none
    private
@@ -77,7 +78,7 @@ module vilma_timestep
 contains
 
    subroutine stepper_advance(self, sht, resp, sle, topo0, ice0, ice1, ice_ref, &
-                              t0, t1, rsl, C, s_rot, sigma_out)
+                              t0, t1, rsl, C, rot, sigma_out)
       !! Advance the VE+SLE model from t0 to t1 with the ice load interpolated linearly
       !! ice(t) = ice0 + (t−t0)/(t1−t0)·(ice1−ice0), absolute; the SLE load is
       !! d_ice(t) = ice(t) − ice_ref (total change from the reference state). Δt is
@@ -93,10 +94,10 @@ contains
       real(wp),                 intent(in)    :: t0, t1
       real(wp),                 intent(inout) :: rsl(:,:)
       real(wp),                 intent(out)   :: C(:,:)
-      !! s_rot (optional): the rotational-feedback contribution to RSL (vilma_rotation),
-      !! held constant across this interval and added to the SLE geometry (the caller
-      !! runs the rotation ↔ SLE coupling at the interval level). Absent ⇒ no rotation.
-      real(wp),       optional, intent(in)    :: s_rot(:,:)
+      !! rot (optional): rotational feedback (vilma_rotation), stepped with the solid
+      !! Earth: every SLE solve iterates it to the fixed point at the end of its own
+      !! sub-step, and it is saved / restored wherever the response is.
+      type(rotation_state), optional, intent(inout) :: rot
       !! sigma_out (optional): the SLE's converged spectral surface mass load [kg m⁻²]
       !! at t1 — the SAME load the response saw, including the subgrid sloping-coast
       !! term. Returned so the caller drives the end-of-interval rotational feedback
@@ -155,7 +156,7 @@ contains
          ice_now  = ice0
          dice_now = ice0 - ice_ref
          call sle_solve(sle, sht, resp, dice_now, ice_now, topo0, rsl, C, res, &
-                        report_only=.true., sigma_lm=sig_last, s_rot=s_rot)
+                        report_only=.true., sigma_lm=sig_last, rot=rot, rot_dt=0.0_wp)
          self%worst_mass_resid = res%mass_resid
          if (present(sigma_out)) sigma_out = sig_last
          return
@@ -195,9 +196,10 @@ contains
             call system_clock(gc0, grate)
             tau0 = response_memory_norm(resp)                ! entering memory ∞-norm
             call response_save_state(resp)
+            if (present(rot)) call rotation_save_state(rot)
             call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
             call response_set_dt(resp, dt)
-            call solve_at(t + dt)                     ! advances memory by dt
+            call solve_at(t + dt, dt)                 ! advances memory by dt
             call system_clock(gc0, grate)
             err_inf = response_memory_norm(resp)
             call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
@@ -215,6 +217,7 @@ contains
             else
                call system_clock(gc0, grate)
                call response_restore_state(resp);  rsl = rsl_n
+               if (present(rot)) call rotation_restore_state(rot)
                call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
                self%n_reject = self%n_reject + 1
                dt = 0.5_wp*dt
@@ -238,7 +241,7 @@ contains
          allocate(sig0(sht%nlm))
          ice_now = ice0;  dice_now = ice0 - ice_ref
          call sle_solve(sle, sht, resp, dice_now, ice_now, topo0, rsl, C, res, &
-                        report_only=.true., sigma_lm=sig0, s_rot=s_rot)
+                        report_only=.true., sigma_lm=sig0, rot=rot, rot_dt=0.0_wp)
          call response_prime_sigma(resp, sig0)
       end if
 
@@ -257,18 +260,20 @@ contains
          rsl_n = rsl
          call system_clock(gc0, grate)
          call response_save_state(resp)                   ! buffer A = τ_n
+         if (present(rot)) call rotation_save_state(rot)
          call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
          call response_set_dt(resp, dt)
-         call solve_at(t + dt)                     ! coarse: one Δt
+         call solve_at(t + dt, dt)                 ! coarse: one Δt
          call system_clock(gc0, grate)
          call response_stash_coarse(resp)                  ! buffer B = τ_coarse
          call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
          call system_clock(gc0, grate)
          call response_restore_state(resp);  rsl = rsl_n   ! back to τ_n (and its rsl seed)
+         if (present(rot)) call rotation_restore_state(rot) ! the rotation follows the fine pair
          call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
          call response_set_dt(resp, 0.5_wp*dt)
-         call solve_at(t + 0.5_wp*dt)              ! fine sub-step 1
-         call solve_at(t + dt)                     ! fine sub-step 2 → τ_fine
+         call solve_at(t + 0.5_wp*dt, 0.5_wp*dt)   ! fine sub-step 1
+         call solve_at(t + dt, 0.5_wp*dt)          ! fine sub-step 2 → τ_fine
          call system_clock(gc0, grate)
          call response_coarse_fine_error(resp, err_inf, tau_inf)
          call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
@@ -290,6 +295,7 @@ contains
          else
             call system_clock(gc0, grate)
             call response_restore_state(resp);  rsl = rsl_n
+            if (present(rot)) call rotation_restore_state(rot)
             call system_clock(gc1);  self%t_guard = self%t_guard + real(gc1-gc0,wp)/grate
             self%n_reject = self%n_reject + 1
          end if
@@ -311,17 +317,18 @@ contains
 
    contains
 
-      subroutine solve_at(t_eval)
+      subroutine solve_at(t_eval, h)
          !! One SLE solve (co-converged memory advance) with the ice load interpolated
-         !! at t_eval. Advances resp by the current resp%dt (set by the caller).
-         real(wp), intent(in) :: t_eval
+         !! at t_eval. Advances resp by the current resp%dt (set by the caller) and the
+         !! rotation by h, the same sub-step (passed: resp%dt is not set for elastic).
+         real(wp), intent(in) :: t_eval, h
          real(wp) :: frac
          frac = (t_eval - t0)/span
          ice_now  = ice0 + frac*(ice1 - ice0)
          dice_now = ice_now - ice_ref
          self%n_solve = self%n_solve + 1
          call sle_solve(sle, sht, resp, dice_now, ice_now, topo0, rsl, C, res, &
-                        sigma_lm=sig_last, s_rot=s_rot)
+                        sigma_lm=sig_last, rot=rot, rot_dt=h)
          self%worst_mass_resid = max(self%worst_mass_resid, res%mass_resid)
       end subroutine solve_at
 

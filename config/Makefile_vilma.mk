@@ -45,10 +45,10 @@ $(objdir)/vilma_response.o:         $(objdir)/vilma_radial_fe.o $(objdir)/vilma_
                                     $(objdir)/vilma_sht.o $(objdir)/vilma_tensor_sh.o \
                                     $(objdir)/vilma_constants.o $(objdir)/vilma_viscoelastic.o
 $(objdir)/vilma_sle.o:              $(objdir)/vilma_sht.o $(objdir)/vilma_constants.o \
-                                    $(objdir)/vilma_response.o
+                                    $(objdir)/vilma_response.o $(objdir)/vilma_rotation.o
 $(objdir)/vilma_timestep.o:         $(objdir)/vilma_response.o $(objdir)/vilma_sle.o \
                                     $(objdir)/vilma_sht.o $(objdir)/vilma_viscoelastic.o \
-                                    $(objdir)/vilma_precision.o
+                                    $(objdir)/vilma_precision.o $(objdir)/vilma_rotation.o
 $(objdir)/vilma_rotation.o:         $(objdir)/vilma_sht.o $(objdir)/vilma_constants.o \
                                     $(objdir)/vilma_earth_structure.o $(objdir)/vilma_radial_fe.o \
                                     $(objdir)/vilma_viscoelastic.o

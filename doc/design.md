@@ -394,10 +394,14 @@ the surface mass load — the rotational potential forces the Earth through the 
 channel, not as a load — and `Δφ` is recomputed so ocean mass stays conserved. The
 rotation ↔ SLE coupling is a fixed point (`m` responds to the ice+ocean load);
 `vilma_rotation` is split into begin_step / solve_m / s_rot / commit (affine, no memory
-advance until commit) so it can be iterated. In the coupling driver it is applied at
-the interval level (a predictor: `s_rot` held across the interval, `m` refreshed from
-the end load; the explicit-FE channels are sub-stepped to the Maxwell stability
-ceiling `dt_fe_max`). `k_s` exposes two values: the model fluid limit `k_s_fluid`
+advance until commit) so it can be iterated. It steps with the solid Earth:
+`sle_solve(…, rot, rot_dt)` runs `rotation_trial` (from the step-start state, the
+explicit-FE channels sub-cycled to `dt_fe_max` with the load held) in every inner
+iteration, adds its `s_rot`, and commits with `rotation_close_step` where the response
+memory advances; `stepper_advance` saves/restores it alongside the response. (It used
+to be applied once per coupling interval, as a predictor with `s_rot` held from the
+entering `m`, which lagged the rotational sea level by one interval.) The channels
+relax on the response's radial viscosity (`rotation_set_rate`). `k_s` exposes two values: the model fluid limit `k_s_fluid`
 (default, reproduces Spada) and the observed-flattening closed form
 `k_s_flat = 3G(C−A)/(a⁵Ω²) = 0.943` (Adhikari/Mitrovica — the recommended deep-time
 value). Validated (`test_rotation_sle`, elastic): hook-off is bit-for-bit the

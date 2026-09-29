@@ -195,7 +195,7 @@ contains
       se%sle%t_total = 0.0_wp;  se%sle%t_sht   = 0.0_wp   ! PROFILE: ...and the SLE detail
       se%sle%t_apply = 0.0_wp;  se%sle%t_resp  = 0.0_wp
       se%sle%n_solve = 0;  se%sle%n_outer_tot = 0;  se%sle%n_inner_tot = 0
-      se%t_remap = 0.0_wp;  se%t_rot = 0.0_wp;  se%stepper%t_guard = 0.0_wp
+      se%sle%t_rot = 0.0_wp;  se%t_remap = 0.0_wp;  se%stepper%t_guard = 0.0_wp
       do k = k0, k1-1
          dt = tyr(k+1) - tyr(k)                    ! coupling interval [years]
          call system_clock(pc0, prate)
@@ -261,17 +261,18 @@ contains
             '   SLE + coupling (rest) =', 1.0e3_wp*(t_upd-t_dr-t_mm)/nstep, ' ms (', &
                100.0_wp*(t_upd-t_dr-t_mm)/max(t_upd,tiny(1.0_wp)), ' % of update)'
       end if
-      ! The residual bucket above, opened up: vilma_sle's own accumulators plus the two
-      ! coupling timers. sle%t_resp is the response lifecycle invoked from INSIDE
+      ! The residual bucket above, opened up: vilma_sle's own accumulators plus the
+      ! remap timer. sle%t_resp is the response lifecycle invoked from INSIDE
       ! sle_solve, so it is already inside drift + memory; subtracting it keeps the
-      ! two breakdowns additive. "unattributed" is the adaptive stepper's own
+      ! two breakdowns additive. sle%t_rot (the rotation, stepped inside sle_solve)
+      ! is reported on its own line and taken out of sle_solve's own work. "unattributed" is the adaptive stepper's own
       ! overhead and anything no timer covers — it should be small, and a large
       ! value means a phase has been missed rather than that the stepper is slow.
       if (nstep > 0 .and. .not. se%use_vilma_v1) then
          rest   = t_upd - t_dr - t_mm
-         t_sle  = se%sle%t_total - se%sle%t_resp          ! SLE work not counted above
+         t_sle  = se%sle%t_total - se%sle%t_resp - se%sle%t_rot   ! SLE work not counted above
          t_grid = t_sle - se%sle%t_sht - se%sle%t_apply
-         t_oth  = rest - t_sle - se%t_remap - se%t_rot - se%stepper%t_guard
+         t_oth  = rest - t_sle - se%t_remap - se%sle%t_rot - se%stepper%t_guard
          write(*,'(a)') ' [PROFILE] "SLE + coupling" opened up (per step, wall-clock):'
          write(*,'(a,f8.1,a,f5.1,a)') &
             '   sle_solve (own work)  =', 1.0e3_wp*t_sle/nstep, ' ms (', &
@@ -289,8 +290,8 @@ contains
             '   host<->Gauss remap    =', 1.0e3_wp*se%t_remap/nstep, ' ms (', &
                100.0_wp*se%t_remap/max(rest,tiny(1.0_wp)), ' % of rest)'
          write(*,'(a,f8.1,a,f5.1,a)') &
-            '   rotation (polar mot.) =', 1.0e3_wp*se%t_rot/nstep, ' ms (', &
-               100.0_wp*se%t_rot/max(rest,tiny(1.0_wp)), ' % of rest)'
+            '   rotation (polar mot.) =', 1.0e3_wp*se%sle%t_rot/nstep, ' ms (', &
+               100.0_wp*se%sle%t_rot/max(rest,tiny(1.0_wp)), ' % of rest)'
          write(*,'(a,f8.1,a,f5.1,a)') &
             '   stepper rollback bkkp =', 1.0e3_wp*se%stepper%t_guard/nstep, ' ms (', &
                100.0_wp*se%stepper%t_guard/max(rest,tiny(1.0_wp)), ' % of rest)'

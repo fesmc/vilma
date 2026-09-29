@@ -57,6 +57,7 @@ module vilma_rotation
    public :: channel_init, channel_set_dt, channel_begin, channel_commit, channel_destroy, rotation_init, rotation_begin_step, rotation_solve_m, rotation_s_rot, rotation_commit, rotation_update, rotation_destroy
    public :: rotation_ne, rotation_get_memory, rotation_set_memory, ROT_NCOMP
    public :: rotation_set_rate
+   public :: rotation_open_step, rotation_trial, rotation_close_step, rotation_save_state, rotation_restore_state
 
    integer, parameter :: JROT = 2          !! rotation is purely degree 2
    integer, parameter :: ROT_NCOMP = 6     !! packed memory components per channel:
@@ -86,6 +87,14 @@ module vilma_rotation
       real(wp), allocatable :: dUn_re(:), dUn_im(:), dVn_re(:), dVn_im(:)  !! nodal ε_n drift
    end type deg2_channel
 
+   type :: rot_snapshot
+      !! The prognostic rotation state at one instant: m, time and both channels'
+      !! packed memory (rotation_get_memory layout).
+      complex(wp) :: m = (0.0_wp, 0.0_wp)
+      real(wp)    :: time = 0.0_wp
+      real(wp), allocatable :: load_mem(:,:,:), tidal_mem(:,:,:)
+   end type rot_snapshot
+
    type :: rotation_state
       logical     :: enabled = .false.       !! set from p%rotation by the coupling init
       complex(wp) :: m = (0.0_wp, 0.0_wp)     !! polar motion m₁ + i m₂ [rad]
@@ -109,6 +118,13 @@ module vilma_rotation
       complex(wp) :: cload   = (0.0_wp,0.0_wp)!! load-channel operator coefficient (set by solve_m, used by commit)
       type(deg2_channel) :: load_ch          !! (1+k^L)∗ channel
       type(deg2_channel) :: tidal_ch         !! k^T∗ channel
+      ! Stepping with the solid Earth (rotation_open_step / trial / close_step): the
+      ! state at the start of the open step, and the sub-cycling of that step within
+      ! the channels' forward-Euler ceiling dt_fe_max.
+      type(rot_snapshot) :: step0            !! state at the start of the open step
+      type(rot_snapshot) :: saved            !! the stepper's save/restore buffer
+      integer            :: n_cycle = 1      !! channel sub-steps in the open step
+      real(wp)           :: dt_cycle = 0.0_wp !! their length [s]
    end type rotation_state
 
 contains
@@ -285,7 +301,87 @@ contains
       call channel_destroy(self%tidal_ch)
       self%m = (0.0_wp, 0.0_wp);  self%time = 0.0_wp
       self%k_s = 0.0_wp;  self%kTe = 0.0_wp;  self%hTe = 0.0_wp
+      if (allocated(self%step0%load_mem)) deallocate(self%step0%load_mem, self%step0%tidal_mem)
+      if (allocated(self%saved%load_mem)) deallocate(self%saved%load_mem, self%saved%tidal_mem)
    end subroutine rotation_destroy
+
+   ! === stepping with the solid Earth ========================================
+   ! The SLE solve iterates rsl ↔ load to a fixed point at the END of a solid-Earth
+   ! step [t, t+dt]. The rotation joins that fixed point: each iteration's load sets
+   ! m(t+dt) (rotation_trial), whose s_rot enters that iteration's sea surface, and
+   ! the step is committed with the converged load (rotation_close_step). A step
+   ! longer than the channels' forward-Euler ceiling is sub-cycled with the load
+   ! held; m(t+dt) stays affine in the load, so the trial can be repeated freely from
+   ! the step-start state.
+
+   subroutine rotation_open_step(self, dt)
+      !! Open a solid-Earth step of length dt [s] (0 for a report-only solve): record
+      !! the step-start state and split dt into n_cycle ≤ dt_fe_max sub-steps.
+      type(rotation_state), intent(inout) :: self
+      real(wp),              intent(in)    :: dt
+      if (.not. self%enabled) return
+      call snapshot_take(self, self%step0)
+      self%n_cycle  = max(1, ceiling(dt/self%dt_fe_max - 1.0e-9_wp))
+      self%dt_cycle = dt/real(self%n_cycle, wp)
+   end subroutine rotation_open_step
+
+   subroutine rotation_trial(self, sht, load)
+      !! m at the end of the open step under the surface load `load` [kg m⁻²], held
+      !! across it. Starts from the step-start state every call (pure in the step),
+      !! commits all but the last sub-step, and leaves the last one's drift frozen so
+      !! rotation_s_rot and rotation_close_step act on it.
+      type(rotation_state), intent(inout) :: self
+      type(sht_grid),        intent(in)    :: sht
+      real(wp),              intent(in)    :: load(:,:)
+      integer :: k
+      if (.not. self%enabled) return
+      call snapshot_put(self, self%step0)
+      do k = 1, self%n_cycle
+         call rotation_begin_step(self, sht, self%dt_cycle)
+         call rotation_solve_m(self, sht, load)
+         if (k < self%n_cycle) call rotation_commit(self, sht)
+      end do
+   end subroutine rotation_trial
+
+   subroutine rotation_close_step(self, sht)
+      !! Commit the last sub-step of the open step with the last trial's m and load.
+      type(rotation_state), intent(inout) :: self
+      type(sht_grid),        intent(in)    :: sht
+      if (.not. self%enabled) return
+      call rotation_commit(self, sht)
+   end subroutine rotation_close_step
+
+   subroutine rotation_save_state(self)
+      !! The stepper's buffer, alongside response_save_state.
+      type(rotation_state), intent(inout) :: self
+      if (.not. self%enabled) return
+      call snapshot_take(self, self%saved)
+   end subroutine rotation_save_state
+
+   subroutine rotation_restore_state(self)
+      !! Back to the state of the last rotation_save_state (a rejected step).
+      type(rotation_state), intent(inout) :: self
+      if (.not. self%enabled) return
+      call snapshot_put(self, self%saved)
+   end subroutine rotation_restore_state
+
+   subroutine snapshot_take(self, s)
+      type(rotation_state), intent(in)    :: self
+      type(rot_snapshot),   intent(inout) :: s
+      integer :: ne
+      ne = rotation_ne(self)
+      if (.not. allocated(s%load_mem)) &
+         allocate(s%load_mem(NLAM, ne, ROT_NCOMP), s%tidal_mem(NLAM, ne, ROT_NCOMP))
+      call rotation_get_memory(self, s%m, s%load_mem, s%tidal_mem)
+      s%time = self%time
+   end subroutine snapshot_take
+
+   subroutine snapshot_put(self, s)
+      type(rotation_state), intent(inout) :: self
+      type(rot_snapshot),   intent(in)    :: s
+      call rotation_set_memory(self, s%m, s%load_mem, s%tidal_mem)
+      self%time = s%time
+   end subroutine snapshot_put
 
    ! === restart serialization =================================================
    ! The prognostic state of the rotation solver is the polar motion m plus both
