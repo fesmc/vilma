@@ -248,7 +248,8 @@ contains
       type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(out)   :: srot(:,:)
       complex(wp) :: cN, cU
-      real(wp)    :: kN, ku, gam, cphi, sphi
+      real(wp)    :: kN, ku, gam
+      real(wp), allocatable :: clon(:), slon(:)
       integer     :: il, ip
       if (.not. self%enabled) then
          srot = 0.0_wp;  return
@@ -258,12 +259,12 @@ contains
       ! N_rot = −(Ω²a²/g)·γ·[Re(cN)cosφ+Im(cN)sinφ]; u_rot = −Ω²a²·γ·[Re(cU)cosφ+Im(cU)sinφ]
       kN = self%Omega**2 * self%a**2 / self%g
       ku = self%Omega**2 * self%a**2
+      clon = cos(sht%lon);  slon = sin(sht%lon)        ! once per call, not per point
       do il = 1, sht%nlat
          gam = sin(sht%colat(il))*cos(sht%colat(il))
          do ip = 1, sht%nphi
-            cphi = cos(sht%lon(ip));  sphi = sin(sht%lon(ip))
-            srot(ip,il) = -gam*( kN*(real(cN,wp)*cphi + aimag(cN)*sphi) &
-                               -  ku*(real(cU,wp)*cphi + aimag(cU)*sphi) )
+            srot(ip,il) = -gam*( kN*(real(cN,wp)*clon(ip) + aimag(cN)*slon(ip)) &
+                               -  ku*(real(cU,wp)*clon(ip) + aimag(cU)*slon(ip)) )
          end do
       end do
    end subroutine rotation_s_rot
@@ -448,16 +449,17 @@ contains
       type(sht_grid), intent(in) :: sht
       real(wp),       intent(in) :: load(:,:)   !! (nphi, nlat) [kg m⁻²]
       real(wp),       intent(in) :: a
-      real(wp), allocatable :: w13(:,:), w23(:,:)
+      real(wp), allocatable :: w13(:,:), w23(:,:), clon(:), slon(:)
       real(wp) :: st, ct, sc2
       integer  :: il, ip
       allocate(w13(sht%nphi, sht%nlat), w23(sht%nphi, sht%nlat))
+      clon = cos(sht%lon);  slon = sin(sht%lon)        ! once per call, not per point
       do il = 1, sht%nlat
          st  = sin(sht%colat(il));  ct = cos(sht%colat(il))
          sc2 = st*ct                                   ! sinθ cosθ
          do ip = 1, sht%nphi
-            w13(ip,il) = load(ip,il)*sc2*cos(sht%lon(ip))
-            w23(ip,il) = load(ip,il)*sc2*sin(sht%lon(ip))
+            w13(ip,il) = load(ip,il)*sc2*clon(ip)
+            w23(ip,il) = load(ip,il)*sc2*slon(ip)
          end do
       end do
       I21 = cmplx(-a**4*sht_grid_surface_integral(sht, w13), &
