@@ -111,7 +111,7 @@ program test_rotation_sle
    mcpl = abs(rot%m)/deg
    call sht_grid_synthesis(sht, sig, load)
    m_chk = rot%m
-   call rotation_open_step(rot, 0.0_wp)
+   call rotation_open_step(rot, sht, 0.0_wp)
    call rotation_trial(rot, sht, load)
    write(*,'(a)') ''
    write(*,'(a)') ' (4) rotation <-> SLE fixed point inside sle_solve'
@@ -186,12 +186,12 @@ program test_rotation_sle
    call rotation_init(rot_b, earth, sht, dt);  rot_b%enabled = .true.
    load = rho_i*d_ice
    h = 4.0_wp*rot_a%dt_fe_max
-   call rotation_open_step(rot_a, h)                ! one step, sub-cycled 4 times
+   call rotation_open_step(rot_a, sht, h)                ! one step, sub-cycled 4 times
    call rotation_trial(rot_a, sht, load)
    call rotation_trial(rot_a, sht, load)            ! a repeat trial must change nothing
    call rotation_close_step(rot_a, sht)
    do k = 1, 4                                      ! four steps of h/4
-      call rotation_open_step(rot_b, 0.25_wp*h)
+      call rotation_open_step(rot_b, sht, 0.25_wp*h)
       call rotation_trial(rot_b, sht, load)
       call rotation_close_step(rot_b, sht)
    end do
@@ -208,7 +208,7 @@ program test_rotation_sle
       write(*,'(a)') '      FAIL: a sub-cycled step differs from the equivalent short steps'; ok = .false.
    end if
    call rotation_save_state(rot_b)
-   call rotation_open_step(rot_b, h)
+   call rotation_open_step(rot_b, sht, h)
    call rotation_trial(rot_b, sht, 2.0_wp*load)
    call rotation_close_step(rot_b, sht)
    call rotation_restore_state(rot_b)

@@ -225,7 +225,7 @@ contains
          if (.not. present(rot_dt)) error stop 'sle_solve: rot needs rot_dt'
          allocate(srot(np,nl))
          call system_clock(pca)
-         call rotation_open_step(rot, merge(0.0_wp, rot_dt, ronly))
+         call rotation_open_step(rot, sht, merge(0.0_wp, rot_dt, ronly))
          call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
       end if
 

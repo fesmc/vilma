@@ -315,27 +315,36 @@ contains
    ! held; m(t+dt) stays affine in the load, so the trial can be repeated freely from
    ! the step-start state.
 
-   subroutine rotation_open_step(self, dt)
+   subroutine rotation_open_step(self, sht, dt)
       !! Open a solid-Earth step of length dt [s] (0 for a report-only solve): record
-      !! the step-start state and split dt into n_cycle ≤ dt_fe_max sub-steps.
+      !! the step-start state, split dt into n_cycle ≤ dt_fe_max sub-steps, and freeze
+      !! the first sub-step's drift (a function of the step-start memory alone).
       type(rotation_state), intent(inout) :: self
+      type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(in)    :: dt
       if (.not. self%enabled) return
       call snapshot_take(self, self%step0)
       self%n_cycle  = max(1, ceiling(dt/self%dt_fe_max - 1.0e-9_wp))
       self%dt_cycle = dt/real(self%n_cycle, wp)
+      call rotation_begin_step(self, sht, self%dt_cycle)
    end subroutine rotation_open_step
 
    subroutine rotation_trial(self, sht, load)
       !! m at the end of the open step under the surface load `load` [kg m⁻²], held
       !! across it. Starts from the step-start state every call (pure in the step),
       !! commits all but the last sub-step, and leaves the last one's drift frozen so
-      !! rotation_s_rot and rotation_close_step act on it.
+      !! rotation_s_rot and rotation_close_step act on it. A single-cycle step (the
+      !! usual case: the solid Earth's own sub-step is already within dt_fe_max) never
+      !! leaves the step-start memory, so its drift, frozen at open, is reused as is.
       type(rotation_state), intent(inout) :: self
       type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(in)    :: load(:,:)
       integer :: k
       if (.not. self%enabled) return
+      if (self%n_cycle == 1) then
+         call rotation_solve_m(self, sht, load)
+         return
+      end if
       call snapshot_put(self, self%step0)
       do k = 1, self%n_cycle
          call rotation_begin_step(self, sht, self%dt_cycle)
