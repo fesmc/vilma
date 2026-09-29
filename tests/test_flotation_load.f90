@@ -19,7 +19,7 @@ program test_flotation_load
    use vilma_radial_fe,       only: radial_fe_finalize
    use vilma_response,        only: response_destroy, response, response_init_elastic, response_init_ve, response_init_null
    use vilma_sht,             only: sht_grid, sht_grid_init, sht_grid_destroy
-   use vilma_sle,             only: sle_solve, sle_solver, sle_result
+   use vilma_sle,             only: sle_solve, sle_solver, sle_result, sle_result_grids
    implicit none
 
    integer, parameter :: LMAX = 24
@@ -28,7 +28,7 @@ program test_flotation_load
    type(response) :: resp
    type(sle_solver)       :: sle
    type(sle_result)       :: res
-   real(wp), allocatable :: topo0(:,:), ice(:,:), rsl(:,:), C(:,:)
+   real(wp), allocatable :: topo0(:,:), ice(:,:), rsl(:,:), C(:,:), ug(:,:)
    real(wp) :: u_ground, u_float, c_ground, c_float, thd
    integer  :: i, j, jg, jf
    logical  :: ok
@@ -55,9 +55,11 @@ program test_flotation_load
 
    call sle_solve(sle, sht, resp, ice, ice, topo0, rsl, C, res)
 
+   allocate(ug(sht%nphi,sht%nlat))
+   call sle_result_grids(res, sht, u=ug)
    jg = row_near(7.0_wp);  jf = row_near(173.0_wp)
-   u_ground = res%u(1,jg);  c_ground = C(1,jg)
-   u_float  = res%u(1,jf);  c_float  = C(1,jf)
+   u_ground = ug(1,jg);  c_ground = C(1,jg)
+   u_float  = ug(1,jf);  c_float  = C(1,jf)
 
    write(*,'(a)')        ' Grounded-ice LOAD masking (floating ice does not load the bed)'
    write(*,'(a,f9.3,a,f4.1,a)') '      grounded N cap (colat  7): u =', u_ground, ' m  (C=', c_ground, ')'

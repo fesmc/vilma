@@ -42,7 +42,7 @@ program test_benchmark_sle
    use vilma_radial_fe,       only: radial_fe_finalize
    use vilma_response,        only: response_destroy, response_horizontal, response, response_init_elastic, response_init_ve, response_init_null
    use vilma_sht,             only: sht_grid_destroy, sht_grid_eval_point_horiz, sht_grid_eval_point, sht_grid_analysis, sht_grid_surface_integral, sht_grid_init, sht_grid
-   use vilma_sle,             only: sle_solve, sle_solver, sle_result
+   use vilma_sle,             only: sle_solve, sle_solver, sle_result, sle_result_grids
    use vilma_field,           only: spherical_cap, exp_basin
    implicit none
 
@@ -86,7 +86,7 @@ program test_benchmark_sle
    type(sle_solver)   :: sle
    type(sle_result)   :: res
    real(wp), allocatable :: topo0(:,:), basin(:,:), ice_now(:,:)
-   real(wp), allocatable :: rsl(:,:), C(:,:), tmp(:,:), dtopo(:,:)
+   real(wp), allocatable :: rsl(:,:), C(:,:), tmp(:,:), dtopo(:,:), ug(:,:), Ng(:,:)
    complex(wp), allocatable :: u_lm(:), N_lm(:), rsl_lm(:), v_lm(:)
    real(wp) :: dt, esl, bary, shift, rho_ratio, spinerr
    integer  :: spin
@@ -149,7 +149,7 @@ program test_benchmark_sle
    ! converged horizontal: rebuild the converged surface load exactly as vilma_sle's
    ! commit_step does (grounded ice + ocean water) and read the spheroidal V field.
    ! resp%horizontal reuses the last begin_step's frozen drift, so v_lm is
-   ! consistent with res%u/res%N.
+   ! consistent with res%u_lm/res%N_lm.
    tmp = rho_ice*ice_now*(1.0_wp - C) + rho_water*(C*rsl)
    call sht_grid_analysis(sht, tmp, u_lm)                           ! u_lm reused as load_lm
    call response_horizontal(resp, sht, u_lm, v_lm)
@@ -157,7 +157,9 @@ program test_benchmark_sle
    ! eustatic decomposition at the final state
    rho_ratio = rho_ice/rho_water
    bary  = -rho_ratio*sht_grid_surface_integral(sht, ice_now)/sht_grid_surface_integral(sht, C)
-   shift = sht_grid_surface_integral(sht, C*(res%N - res%u))/sht_grid_surface_integral(sht, C)
+   allocate(ug(sht%nphi,sht%nlat), Ng(sht%nphi,sht%nlat))
+   call sle_result_grids(res, sht, u=ug, N=Ng)
+   shift = sht_grid_surface_integral(sht, C*(Ng - ug))/sht_grid_surface_integral(sht, C)
    write(*,'(a)') ''
    write(*,'(a,f10.4,a,f10.4,a,f10.4)') ' eustatic: dphi(esl)=', esl, '  barystatic=', bary, &
                                         '  ocean-mean(N-u)=', shift
@@ -165,8 +167,7 @@ program test_benchmark_sle
         '  C_int[sr]=', sht_grid_surface_integral(sht, C)
 
    ! spectral coefficients of the final converged scalar fields
-   tmp = res%u;  call sht_grid_analysis(sht, tmp, u_lm)
-   tmp = res%N;  call sht_grid_analysis(sht, tmp, N_lm)
+   u_lm = res%u_lm;  N_lm = res%N_lm
    tmp = rsl;    call sht_grid_analysis(sht, tmp, rsl_lm)
 
    write(*,'(a)') ''
