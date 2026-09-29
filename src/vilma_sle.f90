@@ -394,9 +394,9 @@ contains
 
       call system_clock(pca)
       if (.not. ronly) call response_finalize_step(resp, sht)
+      call system_clock(pcb);  self%t_resp = self%t_resp + real(pcb-pca,wp)/prate
       if (rotate .and. .not. ronly) call rotation_close_step(rot, sht)
       call system_clock(pca);  self%t_rot = self%t_rot + real(pca-pcb,wp)/prate
-      call system_clock(pcb);  self%t_resp = self%t_resp + real(pcb-pca,wp)/prate
       if (present(sigma_lm)) sigma_lm = load_lm   ! converged spectral surface load
 
       ! diagnostics. The conserved ocean-water volume is ∫s dΩ = ∫C·rsl − ζ̄⁽⁰⁾
