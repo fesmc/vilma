@@ -19,7 +19,7 @@ program test_sle_eustatic
    use vilma_radial_fe,       only: radial_fe_finalize
    use vilma_response,        only: response_destroy, response, response_init_elastic, response_init_ve, response_init_null
    use vilma_sht,             only: sht_grid_destroy, sht_grid_eval_point, sht_grid_analysis, sht_grid_surface_integral, sht_grid_init, sht_grid
-   use vilma_sle,             only: sle_solve, sle_solver, sle_result
+   use vilma_sle,             only: sle_solve, sle_solver, sle_result, sle_result_grids
    use vilma_field,           only: spherical_cap
    implicit none
 
@@ -30,7 +30,7 @@ program test_sle_eustatic
    type(response) :: resp
    type(sle_solver)  :: sle
    type(sle_result)  :: res
-   real(wp), allocatable :: topo0(:,:), ice(:,:), rsl(:,:), C(:,:), tmp(:,:)
+   real(wp), allocatable :: topo0(:,:), ice(:,:), rsl(:,:), C(:,:), tmp(:,:), ug(:,:), Ng(:,:)
    complex(wp), allocatable :: N_lm(:)
    real(wp) :: dt, rho_ratio, ice_int, C_int, bary, defo, Nsouth, ss_south
    integer  :: i, j, istep
@@ -66,8 +66,10 @@ program test_sle_eustatic
    ice_int = -rho_ratio*sht_grid_surface_integral(sht, ice)
    C_int   = sht_grid_surface_integral(sht, C)
    bary    = ice_int/C_int                                  ! pure barystatic eustatic
-   defo    = sht_grid_surface_integral(sht, C*(res%N - res%u))/C_int  ! ocean-mean(N-u)
-   tmp = res%N;  call sht_grid_analysis(sht, tmp, N_lm)
+   allocate(ug(sht%nphi,sht%nlat), Ng(sht%nphi,sht%nlat))
+   call sle_result_grids(res, sht, u=ug, N=Ng)
+   defo    = sht_grid_surface_integral(sht, C*(Ng - ug))/C_int      ! ocean-mean(N-u)
+   N_lm    = res%N_lm
    call sht_grid_eval_point(sht, N_lm, pi, 0.0_wp, Nsouth)            ! geoid at S pole (deep ocean)
    ss_south = Nsouth + res%esl
 

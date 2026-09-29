@@ -32,7 +32,7 @@ program dump_reference
                                  response_begin_step, response_apply, response_horizontal, &
                                  response_commit_step, response_set_dt, response_destroy, &
                                  response_enable_lateral_visc
-   use vilma_sle,             only: sle_solver, sle_result, sle_solve
+   use vilma_sle,             only: sle_solver, sle_result, sle_solve, sle_result_grids
    use vilma_rotation,        only: rotation_state, rotation_init, rotation_update, rotation_destroy
    use vilma_params,          only: vilma_param_class
    use vilma_coupling,        only: solid_earth, solid_earth_init, solid_earth_update, solid_earth_finalize
@@ -676,7 +676,7 @@ contains
       type(response)    :: el, ve
       type(sle_solver)  :: sle
       type(sle_result)  :: res
-      real(wp), allocatable :: topo0(:,:), d_ice(:,:), ice(:,:), S(:,:), C(:,:)
+      real(wp), allocatable :: topo0(:,:), d_ice(:,:), ice(:,:), S(:,:), C(:,:), ug(:,:), Ng(:,:)
       real(wp), allocatable :: rsl(:,:,:), Cs(:,:,:), us(:,:,:), Ns(:,:,:)
       real(wp), allocatable :: esl(:), mres(:), resid(:), tyr(:)
       integer,  allocatable :: ninner(:), nouter(:)
@@ -713,8 +713,10 @@ contains
       call sle_solve(sle, g, el, d_ice, ice, topo0, S, C, res)
       call nc_write(f, "rsl_el", S, dim1="lon", dim2="colat", units="m", long_name="elastic SLE: relative sea level change rsl = N - u + dphi (full field)")
       call nc_write(f, "C_el",   C, dim1="lon", dim2="colat", units="1", long_name="elastic SLE: converged ocean function")
-      call nc_write(f, "u_el",   res%u, dim1="lon", dim2="colat", units="m", long_name="elastic SLE: converged solid uplift")
-      call nc_write(f, "N_el",   res%N, dim1="lon", dim2="colat", units="m", long_name="elastic SLE: converged geoid rise")
+      allocate(ug(g%nphi,g%nlat), Ng(g%nphi,g%nlat))
+      call sle_result_grids(res, g, u=ug, N=Ng)
+      call nc_write(f, "u_el",   ug, dim1="lon", dim2="colat", units="m", long_name="elastic SLE: converged solid uplift")
+      call nc_write(f, "N_el",   Ng, dim1="lon", dim2="colat", units="m", long_name="elastic SLE: converged geoid rise")
       call ws(f, "esl_el", res%esl, "m", "elastic SLE: eustatic offset dphi (uniform sea-surface shift)")
       call ws(f, "mass_resid_el", res%mass_resid, "1", "elastic SLE: relative ocean-mass residual")
       call ws(f, "resid_el", res%resid, "m", "elastic SLE: last inner max|dS|")
@@ -730,7 +732,8 @@ contains
       do is = 1, NSTEP
          if (abs(ve%time - tyr(is)*sec_per_year) > 1.0e-6_wp*sec_per_year) error stop 'dump_sle: time mismatch'
          call sle_solve(sle, g, ve, d_ice, ice, topo0, S, C, res)
-         rsl(:,:,is) = S;  Cs(:,:,is) = C;  us(:,:,is) = res%u;  Ns(:,:,is) = res%N
+         call sle_result_grids(res, g, u=ug, N=Ng)
+         rsl(:,:,is) = S;  Cs(:,:,is) = C;  us(:,:,is) = ug;  Ns(:,:,is) = Ng
          esl(is) = res%esl;  mres(is) = res%mass_resid;  resid(is) = res%resid
          ninner(is) = res%n_inner_last;  nouter(is) = res%n_outer_done
       end do
@@ -1396,8 +1399,7 @@ contains
       tmp = rho_ice*ice_now*(1.0_wp - C) + rho_water*(C*rsl) - rho_water*topo0*(C - C0)
       call sht_grid_analysis(sht, tmp, load_lm)
       call response_horizontal(resp, sht, load_lm, v_lm)
-      tmp = res%u;  call sht_grid_analysis(sht, tmp, u_lm)
-      tmp = res%N;  call sht_grid_analysis(sht, tmp, N_lm)
+      u_lm = res%u_lm;  N_lm = res%N_lm
       tmp = rsl;    call sht_grid_analysis(sht, tmp, rsl_lm)
       call response_destroy(resp)
       deallocate(basin, ice_now, tmp, dtopo, C0, load_lm)

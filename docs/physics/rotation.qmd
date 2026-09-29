@@ -39,9 +39,13 @@ perturbation from the surface load, $k^{L}$ and $k^{T}$ are the **loading** and
 $C-A$ is the moment difference.
 
 The implementation carries **two degree-2 viscoelastic channels** on the same
-per-degree operator — a *loading* channel forced by the rigid inertia (a direct
-Gauss-grid quadrature of the load, so no axisymmetry is assumed) and a *tidal*
+per-degree operator — a *loading* channel forced by the rigid inertia (from the
+load's (2,1) spherical-harmonic coefficient, i.e. Gauss quadrature of the actual
+load, so no axisymmetry is assumed) and a *tidal*
 channel forced by the centrifugal potential. Each carries its own Maxwell memory.
+Both channels are radially symmetric and relax on the same radial viscosity as
+the load response: a viscosity file's radial profile, taking the lateral geometric
+mean where the file varies laterally, and the layer table only when no file is read.
 The polar motion $\mathbf{m}$ is solved algebraically each step and is **affine**
 in the load, so it sits inside the SLE ↔ rotation fixed point safely; the
 channel memories are committed once with the converged $\mathbf{m}$.
@@ -51,14 +55,22 @@ channel memories are committed once with the converged $\mathbf{m}$.
 The centrifugal potential of the perturbed rotation,
 
 $$
-\Lambda = \Omega^{2} a^{2}\,\sin\theta\cos\theta\,(m_1\cos\phi + m_2\sin\phi),
+\Lambda = -\Omega^{2} a^{2}\,\sin\theta\cos\theta\,(m_1\cos\phi + m_2\sin\phi),
 $$
 
-is a degree-2, order-1 field. It enters the SLE as the rotational sea-surface
+is a degree-2, order-1 field. It is the first-order change of
+$\tfrac12\Omega^2 a^2\sin^2\theta'$ about the displaced pole
+$\hat z + m_1\hat x + m_2\hat y$: a point the pole moves toward comes closer to the
+spin axis, so sea level falls there. It enters the SLE as the rotational sea-surface
 contribution $s_{\rm rot} = (1+k^{T})\Lambda/g - h^{T}\Lambda/g$ (geoid minus
-uplift), held constant across the SLE solve while the caller iterates the
-rotation ↔ SLE fixed point. The rotational potential is thus treated as a load
-like any other — self-consistent, not a bolt-on correction.
+uplift). The rotation steps with the solid Earth: inside every SLE solve, each
+iteration's load sets the polar motion at the end of that solver sub-step, and
+its $s_{\rm rot}$ enters the same iteration's sea surface, so the rotation ↔ SLE
+fixed point converges together with the sea level. The channels are
+committed where the load response's memory advances. A sub-step longer than the
+channels' explicit stability limit is sub-cycled with the load held. The
+rotational potential is thus treated as a load like any other —
+self-consistent, not a bolt-on correction.
 
 ## Design constraints honoured
 
@@ -70,8 +82,8 @@ like any other — self-consistent, not a bolt-on correction.
   thickness leads to the well-known "lithosphere-thickness paradox" in
   rotational stability. The observed-flattening value
   $k_s = 3G(C-A)/(a^5\Omega^2)$ [@Mitrovica2005], recommended for deep time,
-  is computed as well. It can currently be selected only through the
-  `rotation_init` API (optional `k_s` argument), not the namelist.
+  is computed as well. `rotation_k_s` (> 0) prescribes $k_s$ and
+  `rotation_c_minus_a` sets $C-A$.
 - **Couple through the SLE.** The rotational potential enters the sea-level
   equation self-consistently (above).
 
@@ -84,7 +96,8 @@ rotation ↔ SLE per-step fixed point is exercised by `test_rotation_sle`. See t
 
 ::: {.callout-tip title="Where this lives in the code"}
 `vilma_rotation` holds the two degree-2 channels, the Liouville solve, and the
-`s_rot` SLE contribution; `vilma_coupling` drives the rotation ↔ SLE fixed point;
+`s_rot` SLE contribution; `vilma_sle` iterates the rotation ↔ SLE fixed point and
+`vilma_timestep` steps and rolls it back with the load response;
 `vilma_io` persists the polar motion and channel memory on restart. On by default
 (`rotation = .true.`); set `rotation = .false.` for non-rotating benchmarks.
 :::

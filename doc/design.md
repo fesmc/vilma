@@ -371,9 +371,12 @@ step ALGEBRAIC in `m` (the affine begin/apply/commit structure of the field driv
     m_n = [ Ψ_L,n − dF_tidal/k_s ] / [ 1 − k^T_e/k_s ],
 
 then both channels' memory is advanced. The rigid inertia `I₁₃+iI₂₃ =
-−a⁴∫σ sinθcosθ e^{iφ}dΩ` is a DIRECT Gauss-grid quadrature of the load (3-D-ready —
-no spherical-harmonic normalization assumption; verified by reproducing the paper's
-published `G_cap/G_disc` to <0.5%). `k_s = k^T_f` from fluidizing the Maxwell mantle.
+−a⁴∫σ sinθcosθ e^{iφ}dΩ` is taken from the load's (2,1) coefficient Q,
+`I = −a⁴ conj(Q)/(3N₂₁)` (orthonormal, no Condon-Shortley phase), the same Gauss
+quadrature as a direct grid sum (3-D-ready; test_rotation_sle (8) checks the two
+agree to round-off, and the grid form reproduced the paper's published
+`G_cap/G_disc` to <0.5%). The rotational geoid and uplift are added to the SLE's
+spectral N and u (`rotation_add_srot_lm`), so rotation costs no grid pass. `k_s = k^T_f` from fluidizing the Maxwell mantle.
 
 **Pitfall (designed-in): the lithosphere-thickness paradox (Mitrovica et al. 2005).**
 The secular polar-motion slope is *pathologically* sensitive to `k_s` — a 0.5% change
@@ -387,17 +390,21 @@ overridable to the observed-flattening value (§5c). Validated (`test_rotation`)
 **5c — feedback into the SLE.** The centrifugal potential of `m` perturbs the sea
 surface and deforms the solid, adding a degree-2 contribution to relative sea level
 `s_rot = N_rot − u_rot` with (Adhikari et al. 2016, eq. 8) `N_rot = (1+k^T)Λ/g`,
-`u_rot = h^T Λ/g`, `Λ = Ω²a² sinθcosθ(m₁cosφ+m₂sinφ)`. The VE `(1+k^T)`,`h^T` reuse
+`u_rot = h^T Λ/g`, `Λ = −Ω²a² sinθcosθ(m₁cosφ+m₂sinφ)`. The VE `(1+k^T)`,`h^T` reuse
 the 5b tidal channel (which now exposes the uplift readout); the rotational fields
 reuse the `m`-forced channel exactly. `s_rot` enters the SLE geometry (`Sraw`) but NOT
 the surface mass load — the rotational potential forces the Earth through the tidal
 channel, not as a load — and `Δφ` is recomputed so ocean mass stays conserved. The
 rotation ↔ SLE coupling is a fixed point (`m` responds to the ice+ocean load);
 `vilma_rotation` is split into begin_step / solve_m / s_rot / commit (affine, no memory
-advance until commit) so it can be iterated. In the coupling driver it is applied at
-the interval level (a predictor: `s_rot` held across the interval, `m` refreshed from
-the end load; the explicit-FE channels are sub-stepped to the Maxwell stability
-ceiling `dt_fe_max`). `k_s` exposes two values: the model fluid limit `k_s_fluid`
+advance until commit) so it can be iterated. It steps with the solid Earth:
+`sle_solve(…, rot, rot_dt)` runs `rotation_trial` (from the step-start state, the
+explicit-FE channels sub-cycled to `dt_fe_max` with the load held) in every inner
+iteration, adds its `s_rot`, and commits with `rotation_close_step` where the response
+memory advances; `stepper_advance` saves/restores it alongside the response. (It used
+to be applied once per coupling interval, as a predictor with `s_rot` held from the
+entering `m`, which lagged the rotational sea level by one interval.) The channels
+relax on the response's radial viscosity (`rotation_set_rate`). `k_s` exposes two values: the model fluid limit `k_s_fluid`
 (default, reproduces Spada) and the observed-flattening closed form
 `k_s_flat = 3G(C−A)/(a⁵Ω²) = 0.943` (Adhikari/Mitrovica — the recommended deep-time
 value). Validated (`test_rotation_sle`, elastic): hook-off is bit-for-bit the

@@ -32,12 +32,14 @@ module vilma_sle
    use vilma_precision, only: wp
    use vilma_constants, only: rho_ice, rho_water
    use vilma_sht,       only: sht_grid, sht_grid_surface_integral, sht_grid_analysis, sht_grid_synthesis
+   use vilma_rotation,  only: rotation_state, rotation_open_step, rotation_trial, rotation_close_step, &
+                              rotation_add_srot_lm
    use vilma_response,  only: response_finalize_step, response_endpoint_converged, response_advance_endpoint, response_apply, response_prepare_endpoint, response_begin_step, response, response_init_elastic, response_init_ve, response_init_null
    implicit none
    private
 
    public :: sle_solver, sle_result, ocean_function
-   public :: sle_solve
+   public :: sle_solve, sle_result_grids
 
    type :: sle_result
       !! Diagnostics returned by a solve.
@@ -50,8 +52,11 @@ module vilma_sle
       real(wp) :: mass_resid   = 0.0_wp !! relative ocean-mass-conservation error
       real(wp) :: ocean_frac   = 0.0_wp !! ∫C dΩ / 4π
       real(wp) :: esl          = 0.0_wp !! eustatic offset Δφ [m] (uniform sea-surface shift)
-      real(wp), allocatable :: u(:,:)   !! converged solid uplift [m] (nphi,nlat)
-      real(wp), allocatable :: N(:,:)   !! converged geoid rise [m] (nphi,nlat)
+      !! Converged solid uplift and geoid rise [m], spectral (nlm). The solve only ever
+      !! needs their difference on the grid, so the fields themselves stay spectral;
+      !! sle_result_grids synthesises them for a caller that wants grids.
+      complex(wp), allocatable :: u_lm(:)
+      complex(wp), allocatable :: N_lm(:)
    end type sle_result
 
    type :: sle_solver
@@ -114,6 +119,7 @@ module vilma_sle
       real(wp) :: t_sht   = 0.0_wp  !! sht_grid_analysis + sht_grid_synthesis
       real(wp) :: t_apply = 0.0_wp  !! response_apply (spectral load -> u, N)
       real(wp) :: t_resp  = 0.0_wp  !! response lifecycle (overlaps t_drift/t_mem)
+      real(wp) :: t_rot   = 0.0_wp  !! rotation trial + s_rot + commit (polar motion)
       integer  :: n_solve     = 0   !! sle_solve calls
       integer  :: n_outer_tot = 0   !! coastline passes, summed over calls
       integer  :: n_inner_tot = 0   !! inner water-load iterations, summed
@@ -122,7 +128,7 @@ module vilma_sle
 contains
 
    subroutine sle_solve(self, sht, resp, d_ice, ice, topo0, rsl, C, res, &
-                        report_only, sigma_lm, s_rot)
+                        report_only, sigma_lm, rot, rot_dt)
       !! Solve for the relative-sea-level change rsl [m] driven by a grounded-ice
       !! thickness change d_ice [m], on a reference topography topo0 [m] (solid
       !! surface relative to the reference sea surface; ocean where < 0).
@@ -164,39 +170,45 @@ contains
       !! spectral surface load, in either mode.
       logical,          optional, intent(in)  :: report_only
       complex(wp),      optional, intent(out) :: sigma_lm(:)
-      !! s_rot (optional, default 0): the rotational-feedback contribution to relative
-      !! sea level, s_rot = N_rot − u_rot [m] (geoid minus uplift from the centrifugal
-      !! potential of polar motion; vilma_rotation builds it). It is a degree-2 field HELD
-      !! constant over this solve — the rotation ↔ SLE fixed point is iterated by the
-      !! caller (the polar motion responds to the ice + ocean load). It enters the
-      !! sea-surface geometry (Sraw) but NOT the surface mass load that drives the
-      !! load response / Maxwell memory: the rotational potential forces the Earth
-      !! through vilma_rotation's own tidal channel, not as a surface mass. Mass is still
-      !! conserved — Δφ is recomputed from Sraw including s_rot. With s_rot absent the
-      !! solve is bit-for-bit the no-rotation result.
-      real(wp),         optional, intent(in)  :: s_rot(:,:)
+      !! rot, rot_dt (optional, together): rotational feedback, stepped with the solid
+      !! Earth over this solve's step of length rot_dt [s]. Each inner iteration's load
+      !! (its (2,1) coefficient) sets the polar motion at the end of the step
+      !! (rotation_trial), and the rotational geoid N_rot and uplift u_rot are added to
+      !! that iteration's spectral N and u (rotation_add_srot_lm), so the rotation ↔
+      !! SLE fixed point converges inside this solve and res%N_lm / res%u_lm are the full
+      !! fields. s_rot = N_rot − u_rot enters the sea-surface geometry (Sraw) but NOT
+      !! the surface mass load that drives the load response:
+      !! the rotational potential forces the Earth through vilma_rotation's own tidal
+      !! channel, not as a surface mass. Mass is still conserved — Δφ is recomputed
+      !! from Sraw including s_rot. The rotation is committed with the closing load
+      !! where the response's memory advances; a report-only solve steps it by 0 and
+      !! commits nothing. With rot absent (or disabled) the solve is bit-for-bit the
+      !! no-rotation result.
+      type(rotation_state), optional, intent(inout) :: rot
+      real(wp),             optional, intent(in)    :: rot_dt
 
-      real(wp), allocatable :: load(:,:), u(:,:), N(:,:), Sraw(:,:), rsl_new(:,:)
+      real(wp), allocatable :: load(:,:), Sraw(:,:), rsl_new(:,:)
       real(wp), allocatable :: C0(:,:), wcorr(:,:), C_next(:,:), d_ice_g(:,:)
-      complex(wp), allocatable :: load_lm(:), u_lm(:), N_lm(:)
+      complex(wp), allocatable :: load_lm(:), u_lm(:), N_lm(:), S_lm(:)
       real(wp) :: rho_ratio, ice_int, dphi, C_int, Cs_int, zeta_int, smax, dmax
       integer  :: im, io, ii, np, nl, n_mem
-      logical  :: ronly
+      logical  :: ronly, rotate
       integer(kind=8) :: pc0, pc1, pca, pcb, prate   ! PROFILE: see %t_total
 
       call system_clock(pc0, prate)
       self%n_solve = self%n_solve + 1
 
       np = sht%nphi;  nl = sht%nlat
-      allocate(load(np,nl), u(np,nl), N(np,nl), Sraw(np,nl), rsl_new(np,nl))
+      allocate(load(np,nl), Sraw(np,nl), rsl_new(np,nl))
       allocate(C0(np,nl), wcorr(np,nl), C_next(np,nl), d_ice_g(np,nl))
-      allocate(load_lm(sht%nlm), u_lm(sht%nlm), N_lm(sht%nlm))
+      allocate(load_lm(sht%nlm), S_lm(sht%nlm))
+      allocate(u_lm(sht%nlm), N_lm(sht%nlm), source=(0.0_wp, 0.0_wp))
 
       rho_ratio = rho_ice/rho_water
       ! Cold start zeroes rsl; warm start keeps the incoming field as the initial
       ! guess (the caller's previous converged solution — see %warm_start).
       if (.not. self%warm_start) rsl = 0.0_wp
-      u = 0.0_wp;  N = 0.0_wp;  dphi = 0.0_wp;  ice_int = 0.0_wp
+      dphi = 0.0_wp;  ice_int = 0.0_wp
       d_ice_g = 0.0_wp
       zeta_int = 0.0_wp;  wcorr = 0.0_wp
       res%n_inner_last = 0;  res%resid = 0.0_wp;  res%n_outer_done = 0
@@ -212,6 +224,14 @@ contains
       call ocean_function(topo0, ice - d_ice, C0)
 
       ronly = .false.;  if (present(report_only)) ronly = report_only
+      rotate = .false.
+      if (present(rot)) rotate = rot%enabled
+      if (rotate) then
+         if (.not. present(rot_dt)) error stop 'sle_solve: rot needs rot_dt'
+         call system_clock(pca)
+         call rotation_open_step(rot, sht, merge(0.0_wp, rot_dt, ronly))
+         call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
+      end if
 
       ! Freeze the response's relaxation drift for this time step; for elastic /
       ! null responses this is a no-op.
@@ -300,12 +320,18 @@ contains
             call system_clock(pcb);  self%t_sht = self%t_sht + real(pcb-pca,wp)/prate
             call response_apply(resp, sht, load_lm, u_lm, N_lm)
             call system_clock(pca);  self%t_apply = self%t_apply + real(pca-pcb,wp)/prate
-            call sht_grid_synthesis(sht, u_lm, u)
-            call sht_grid_synthesis(sht, N_lm, N)
+            if (rotate) then
+               ! rotational feedback: m at the end of the step from this load's (2,1)
+               ! coefficient, and its geoid / uplift added spectrally (s_rot = N_rot − u_rot)
+               call rotation_trial(rot, sht, load_lm)
+               call rotation_add_srot_lm(rot, sht, N_lm, u_lm)
+               call system_clock(pcb);  self%t_rot = self%t_rot + real(pcb-pca,wp)/prate
+               call system_clock(pca)
+            end if
+            S_lm = N_lm - u_lm                          ! one synthesis: only N − u is used
+            call sht_grid_synthesis(sht, S_lm, Sraw)
             call system_clock(pcb);  self%t_sht = self%t_sht + real(pcb-pca,wp)/prate
 
-            Sraw = N - u
-            if (present(s_rot)) Sraw = Sraw + s_rot     ! rotational feedback (held)
             Cs_int = sht_grid_surface_integral(sht, C*Sraw)
             dphi   = (ice_int - Cs_int + zeta_int)/C_int ! mass-conservation offset
             rsl_new = Sraw + dphi                        ! full field, everywhere
@@ -354,6 +380,9 @@ contains
       call system_clock(pca)
       call sht_grid_analysis(sht, load, load_lm)
       call system_clock(pcb);  self%t_sht = self%t_sht + real(pcb-pca,wp)/prate
+      if (rotate) call rotation_trial(rot, sht, load_lm)   ! m with the closing load
+      call system_clock(pca);  self%t_rot = self%t_rot + real(pca-pcb,wp)/prate
+      call system_clock(pcb)
       if (ronly) exit                    ! report only: do NOT advance the memory/time
       call response_advance_endpoint(resp, sht, load_lm)
       call system_clock(pca);  self%t_resp = self%t_resp + real(pca-pcb,wp)/prate
@@ -366,6 +395,8 @@ contains
       call system_clock(pca)
       if (.not. ronly) call response_finalize_step(resp, sht)
       call system_clock(pcb);  self%t_resp = self%t_resp + real(pcb-pca,wp)/prate
+      if (rotate .and. .not. ronly) call rotation_close_step(rot, sht)
+      call system_clock(pca);  self%t_rot = self%t_rot + real(pca-pcb,wp)/prate
       if (present(sigma_lm)) sigma_lm = load_lm   ! converged spectral surface load
 
       ! diagnostics. The conserved ocean-water volume is ∫s dΩ = ∫C·rsl − ζ̄⁽⁰⁾
@@ -378,7 +409,7 @@ contains
       else
          res%mass_resid = abs(Cs_int)
       end if
-      res%u = u;  res%N = N;  res%esl = dphi             ! converged fields + offset
+      res%u_lm = u_lm;  res%N_lm = N_lm;  res%esl = dphi   ! converged fields + offset
 
       call system_clock(pc1);  self%t_total = self%t_total + real(pc1-pc0,wp)/prate
 
@@ -403,6 +434,16 @@ contains
       end subroutine assemble_load
 
    end subroutine sle_solve
+
+   subroutine sle_result_grids(res, sht, u, N)
+      !! The converged uplift and geoid of a solve as grids (nphi, nlat) [m], each
+      !! synthesised only if asked for.
+      type(sle_result),   intent(in)  :: res
+      type(sht_grid),     intent(in)  :: sht
+      real(wp), optional, intent(out) :: u(:,:), N(:,:)
+      if (present(u)) call sht_grid_synthesis(sht, res%u_lm, u)
+      if (present(N)) call sht_grid_synthesis(sht, res%N_lm, N)
+   end subroutine sle_result_grids
 
    subroutine ocean_function(topo, ice, C)
       !! Migrating-coastline ocean function with grounded-ice flotation. A cell

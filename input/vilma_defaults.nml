@@ -106,6 +106,9 @@
     ! --- rotational feedback (vilma_rotation) ----------------------------
     rotation = .true.          ! TPW feedback: on for real runs; set .false. for
                                ! the non-rotating community benchmarks
+    rotation_k_s = 0.0         ! secular Love number k_s; <= 0 = the model's own
+                               ! fluid limit k^T_f (Spada 2011 eq. 11)
+    rotation_c_minus_a = 2.63e35  ! C - A [kg m^2], normalises the load inertia
 
     ! --- LGM-memory spin-up (vilma_coupling solid_earth_spinup) ----------
     ! A model capability the host opts into; holds the reference as the datum and

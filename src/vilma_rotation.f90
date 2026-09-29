@@ -36,9 +36,12 @@ module vilma_rotation
    !! coefficient per channel — self-contained, decoupled from the SLE field driver
    !! (the centrifugal potential is fed back into the SLE in a later step).
    !!
-   !! 3-D ready: I_rigid is a direct Gauss-grid quadrature of the actual load
-   !! (any field), so no axisymmetric assumption enters; only the (1+k^L)/k^T
-   !! channels use the 1-D radial relaxation (laterally-varying η is rung 6).
+   !! 3-D ready: I_rigid is the load's (2,1) coefficient, i.e. Gauss quadrature of
+   !! the actual load (any field), so no axisymmetric assumption enters; only the (1+k^L)/k^T
+   !! channels are radially symmetric. They relax on the radial viscosity the load
+   !! response integrates (rotation_set_rate with response_radial_rate: a viscosity
+   !! file's radial profile, the lateral geometric mean where it varies laterally),
+   !! and on the layer table only when no file is read.
    use vilma_precision,       only: wp
    use vilma_constants,       only: pi, grav_G
    use vilma_earth_structure, only: earth_n_layers, earth_gravity_at, earth_model, RHEOL_FLUID
@@ -46,13 +49,15 @@ module vilma_rotation
                                  idx_u, idx_v, idx_f, ndof_of
    use vilma_viscoelastic,    only: NLAM, ve_strain_constants, dissipative_rhs, &
                                  advance_memory, SCHEME_FE
-   use vilma_sht,             only: sht_grid, sht_grid_surface_integral
+   use vilma_sht,             only: sht_grid, sht_grid_lmidx, sht_grid_analysis, sht_grid_synthesis
    implicit none
    private
 
    public :: rotation_state
    public :: channel_init, channel_set_dt, channel_begin, channel_commit, channel_destroy, rotation_init, rotation_begin_step, rotation_solve_m, rotation_s_rot, rotation_commit, rotation_update, rotation_destroy
    public :: rotation_ne, rotation_get_memory, rotation_set_memory, ROT_NCOMP
+   public :: rotation_set_rate, rotation_add_srot_lm, rotation_inertia21
+   public :: rotation_open_step, rotation_trial, rotation_close_step, rotation_save_state, rotation_restore_state
 
    integer, parameter :: JROT = 2          !! rotation is purely degree 2
    integer, parameter :: ROT_NCOMP = 6     !! packed memory components per channel:
@@ -82,6 +87,14 @@ module vilma_rotation
       real(wp), allocatable :: dUn_re(:), dUn_im(:), dVn_re(:), dVn_im(:)  !! nodal ε_n drift
    end type deg2_channel
 
+   type :: rot_snapshot
+      !! The prognostic rotation state at one instant: m, time and both channels'
+      !! packed memory (rotation_get_memory layout).
+      complex(wp) :: m = (0.0_wp, 0.0_wp)
+      real(wp)    :: time = 0.0_wp
+      real(wp), allocatable :: load_mem(:,:,:), tidal_mem(:,:,:)
+   end type rot_snapshot
+
    type :: rotation_state
       logical     :: enabled = .false.       !! set from p%rotation by the coupling init
       complex(wp) :: m = (0.0_wp, 0.0_wp)     !! polar motion m₁ + i m₂ [rad]
@@ -105,22 +118,31 @@ module vilma_rotation
       complex(wp) :: cload   = (0.0_wp,0.0_wp)!! load-channel operator coefficient (set by solve_m, used by commit)
       type(deg2_channel) :: load_ch          !! (1+k^L)∗ channel
       type(deg2_channel) :: tidal_ch         !! k^T∗ channel
+      ! Stepping with the solid Earth (rotation_open_step / trial / close_step): the
+      ! state at the start of the open step, and the sub-cycling of that step within
+      ! the channels' forward-Euler ceiling dt_fe_max.
+      type(rot_snapshot) :: step0            !! state at the start of the open step
+      type(rot_snapshot) :: saved            !! the stepper's save/restore buffer
+      integer            :: n_cycle = 1      !! channel sub-steps in the open step
+      real(wp)           :: dt_cycle = 0.0_wp !! their length [s]
    end type rotation_state
 
 contains
 
    ! === rotation_state ========================================================
 
-   subroutine rotation_init(self, earth, sht, dt, k_s)
+   subroutine rotation_init(self, earth, sht, dt, k_s, CminusA)
       !! Build the two degree-2 channels, the elastic tidal Love number k^T_e, and
       !! the secular k_s = k^T_f (the relaxed tidal limit = elastic tidal solve of
       !! the model with every Maxwell layer fluidized). Pass k_s to override it with
-      !! an observed-flattening value (Mitrovica et al. 2005) for deep-time runs.
+      !! an observed-flattening value (Mitrovica et al. 2005) for deep-time runs,
+      !! and CminusA to override C − A (which normalises Ψ_L and sets k_s_flat).
       type(rotation_state), intent(inout) :: self
       type(earth_model),     intent(in)    :: earth
       type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(in)    :: dt
       real(wp), optional,    intent(in)    :: k_s
+      real(wp), optional,    intent(in)    :: CminusA
       type(radial_mesh) :: mesh
 
       call rotation_destroy(self)
@@ -137,12 +159,10 @@ contains
       ! relaxed limit k^T_f reproduces the Spada Test 3/2 benchmark; the observed-
       ! flattening closed form k_s = 3G(C−A)/(a⁵Ω²) avoids the lithosphere-thickness
       ! paradox and is the recommended deep-time value.
+      if (present(CminusA)) self%CminusA = CminusA
       self%k_s_fluid = fluid_tidal_k(earth, mesh)
       self%k_s_flat  = 3.0_wp*grav_G*self%CminusA/(self%a**5*self%Omega**2)
-      ! Forward-Euler stability ceiling: Mk = (μ/η)Δt < 2 ⇒ Δt < 2/max(μ/η), with a
-      ! 0.5 safety factor. The driver sub-steps any coupling interval larger than this.
-      if (maxval(self%load_ch%MkPerDt) > 0.0_wp) &
-         self%dt_fe_max = 1.0_wp/maxval(self%load_ch%MkPerDt)
+      call set_dt_fe_max(self)
       if (present(k_s)) then
          self%k_s = k_s                       ! explicit override (e.g. observed flattening)
       else
@@ -150,6 +170,29 @@ contains
       end if
       self%m = (0.0_wp, 0.0_wp);  self%time = 0.0_wp
    end subroutine rotation_init
+
+   subroutine rotation_set_rate(self, MkPerDt)
+      !! Replace both channels' per-element Maxwell rate μ/η with the radial viscosity
+      !! the load response integrates (response_radial_rate), keeping their memory.
+      !! rotation_init builds the channels from the layer table; a run that reads its
+      !! viscosity from a file must call this, or the rotation relaxes on a different
+      !! Earth from the one the load deforms. Elastic/fluid elements carry rate 0.
+      type(rotation_state), intent(inout) :: self
+      real(wp),              intent(in)    :: MkPerDt(:)
+      if (size(MkPerDt) /= self%load_ch%ne) error stop 'rotation_set_rate: rate must be (ne)'
+      call channel_set_rate(self%load_ch, MkPerDt)
+      call channel_set_rate(self%tidal_ch, MkPerDt)
+      call set_dt_fe_max(self)
+   end subroutine rotation_set_rate
+
+   subroutine set_dt_fe_max(self)
+      !! Forward-Euler stability ceiling: Mk = (μ/η)Δt < 2 ⇒ Δt < 2/max(μ/η), with a
+      !! 0.5 safety factor. The driver sub-steps any coupling interval larger than this.
+      type(rotation_state), intent(inout) :: self
+      self%dt_fe_max = huge(1.0_wp)
+      if (maxval(self%load_ch%MkPerDt) > 0.0_wp) &
+         self%dt_fe_max = 1.0_wp/maxval(self%load_ch%MkPerDt)
+   end subroutine set_dt_fe_max
 
    subroutine rotation_begin_step(self, sht, dt)
       !! Open a timestep: set Δt and freeze both channels' relaxation drift from the
@@ -167,18 +210,19 @@ contains
       call channel_begin(self%tidal_ch)
    end subroutine rotation_begin_step
 
-   subroutine rotation_solve_m(self, sht, load)
+   subroutine rotation_solve_m(self, sht, load_lm)
       !! Solve the algebraic (Chandler-neglected) Liouville equation for the polar
-      !! motion under the surface mass load `load` [kg m⁻²], using the drift frozen by
+      !! motion under the surface mass load with spectral coefficients `load_lm`
+      !! [kg m⁻²] (only its (2,1) coefficient enters), using the drift frozen by
       !! begin_step (pure — no memory advance, safe inside the fixed point). Sets
       !! self%m and self%cload (the load-channel coefficient commit will advance with).
       type(rotation_state), intent(inout) :: self
       type(sht_grid),        intent(in)    :: sht
-      real(wp),              intent(in)    :: load(:,:)
+      complex(wp),           intent(in)    :: load_lm(:)
       complex(wp) :: Irig, Itot, psiL
       real(wp)    :: scl
       if (.not. self%enabled) return
-      Irig = inertia21(sht, load, self%a)
+      Irig = rotation_inertia21(sht, load_lm, self%a)
       ! LOADING: feed σ whose own degree-2 potential equals I_rigid (φ^L = 4πGaσ/(2j+1)),
       ! so −F = [1+k^L]∗I_rigid = I(t); Ψ_L = I/(C−A).
       scl        = real(2*JROT+1, wp)/(4.0_wp*pi*grav_G*self%a)
@@ -189,36 +233,66 @@ contains
       self%m = (psiL - self%tidal_ch%dF/self%k_s)/(1.0_wp - self%kTe/self%k_s)
    end subroutine rotation_solve_m
 
-   subroutine rotation_s_rot(self, sht, srot)
-      !! Build the rotational-feedback contribution to relative sea level on the Gauss
-      !! grid, s_rot = N_rot − u_rot, from the current self%m (call after solve_m). The
-      !! centrifugal potential Λ = Ω²a² sinθcosθ (m₁cosφ + m₂sinφ) is a degree-2 order-1
-      !! field; the sea surface and solid respond with the tidal Love numbers (Adhikari
-      !! et al. 2016, eq. 8): N_rot = (1+k^T)Λ/g, u_rot = h^T Λ/g. The VE (1+k^T),h^T are
-      !! the tidal channel's affine response to m: total potential coeff = m + P_ind with
-      !! P_ind = k^T_e m − dF_tidal, uplift coeff C_u = U_e m + dU_tidal (so g·C_u = h^T∗m).
-      type(rotation_state), intent(inout) :: self
-      type(sht_grid),        intent(in)    :: sht
-      real(wp),              intent(out)   :: srot(:,:)
+   subroutine srot_coeffs(self, sht, qN, qu)
+      !! The rotational geoid N_rot and uplift u_rot as (2,1) spectral coefficients,
+      !! from the current self%m (call after solve_m). The centrifugal potential
+      !! Λ = −Ω²a² sinθcosθ (m₁cosφ + m₂sinφ) is a degree-2 order-1 field; the sea
+      !! surface and solid respond with the tidal Love numbers (Adhikari et al. 2016,
+      !! eq. 8): N_rot = (1+k^T)Λ/g, u_rot = h^T Λ/g. The sign follows from
+      !! Λ = ½Ω²a² sin²θ' about the displaced pole ẑ + m₁x̂ + m₂ŷ, where cosθ' = cosθ +
+      !! sinθ(m₁cosφ + m₂sinφ): a point the pole moves toward comes closer to the axis,
+      !! so sea level falls there. The VE (1+k^T),h^T are the tidal channel's affine
+      !! response to m: total potential coeff cN = m + P_ind with P_ind = k^T_e m −
+      !! dF_tidal, uplift coeff cU = U_e m + dU_tidal (so g·cU = h^T∗m). So
+      !!     N_rot = −(Ω²a²/g) sinθcosθ [Re cN cosφ + Im cN sinφ],
+      !!     u_rot = −Ω²a²     sinθcosθ [Re cU cosφ + Im cU sinφ].
+      !! A (2,1) coefficient Q synthesises to 6N₂₁ sinθcosθ (Re Q cosφ − Im Q sinφ)
+      !! (orthonormal, no Condon-Shortley phase; N₂₁ = √(5/24π)), so a field
+      !! sinθcosθ (A cosφ + B sinφ) has Q = conj(A + iB)/(6N₂₁).
+      type(rotation_state), intent(in)  :: self
+      type(sht_grid),       intent(in)  :: sht
+      complex(wp),          intent(out) :: qN, qu
       complex(wp) :: cN, cU
-      real(wp)    :: kN, ku, gam, cphi, sphi
-      integer     :: il, ip
+      real(wp)    :: c6
+      cN = self%m + (self%kTe*self%m - self%tidal_ch%dF)
+      cU = self%tidal_ch%Ue*self%m + self%tidal_ch%dU
+      c6 = 6.0_wp*sqrt(5.0_wp/(24.0_wp*pi))
+      qN = conjg(-(self%Omega**2*self%a**2/self%g)*cN)/c6
+      qu = conjg(-(self%Omega**2*self%a**2)*cU)/c6
+   end subroutine srot_coeffs
+
+   subroutine rotation_add_srot_lm(self, sht, N_lm, u_lm)
+      !! Add the rotational geoid and uplift to the spectral geoid N_lm and uplift u_lm
+      !! (their (2,1) coefficients), so the SLE's own syntheses carry s_rot = N_rot −
+      !! u_rot at no grid cost.
+      type(rotation_state), intent(in)    :: self
+      type(sht_grid),       intent(in)    :: sht
+      complex(wp),          intent(inout) :: N_lm(:), u_lm(:)
+      complex(wp) :: qN, qu
+      integer     :: k
+      if (.not. self%enabled) return
+      call srot_coeffs(self, sht, qN, qu)
+      k = sht_grid_lmidx(sht, JROT, 1)
+      N_lm(k) = N_lm(k) + qN
+      u_lm(k) = u_lm(k) + qu
+   end subroutine rotation_add_srot_lm
+
+   subroutine rotation_s_rot(self, sht, srot)
+      !! The rotational-feedback contribution to relative sea level on the Gauss grid,
+      !! s_rot = N_rot − u_rot, from the current self%m (see srot_coeffs). For tests and
+      !! diagnostics; the SLE adds it spectrally (rotation_add_srot_lm).
+      type(rotation_state), intent(in)  :: self
+      type(sht_grid),       intent(in)  :: sht
+      real(wp),             intent(out) :: srot(:,:)
+      complex(wp), allocatable :: s_lm(:)
+      complex(wp) :: qN, qu
       if (.not. self%enabled) then
          srot = 0.0_wp;  return
       end if
-      cN = self%m + (self%kTe*self%m - self%tidal_ch%dF)     ! (1+k^T)∗m total potential coeff
-      cU = self%tidal_ch%Ue*self%m + self%tidal_ch%dU        ! uplift coeff (g·cU = h^T∗m)
-      ! N_rot = (Ω²a²/g)·γ·[Re(cN)cosφ+Im(cN)sinφ]; u_rot = Ω²a²·γ·[Re(cU)cosφ+Im(cU)sinφ]
-      kN = self%Omega**2 * self%a**2 / self%g
-      ku = self%Omega**2 * self%a**2
-      do il = 1, sht%nlat
-         gam = sin(sht%colat(il))*cos(sht%colat(il))
-         do ip = 1, sht%nphi
-            cphi = cos(sht%lon(ip));  sphi = sin(sht%lon(ip))
-            srot(ip,il) = gam*( kN*(real(cN,wp)*cphi + aimag(cN)*sphi) &
-                              -  ku*(real(cU,wp)*cphi + aimag(cU)*sphi) )
-         end do
-      end do
+      call srot_coeffs(self, sht, qN, qu)
+      allocate(s_lm(sht%nlm), source=(0.0_wp, 0.0_wp))
+      s_lm(sht_grid_lmidx(sht, JROT, 1)) = qN - qu
+      call sht_grid_synthesis(sht, s_lm, srot)
    end subroutine rotation_s_rot
 
    subroutine rotation_commit(self, sht)
@@ -234,17 +308,22 @@ contains
 
    subroutine rotation_update(self, sht, load, dt)
       !! Standalone (no SLE feedback) one-step advance of the polar motion under the
-      !! surface mass load `load` [kg m⁻²]: begin_step + solve_m + commit. Reports m at
-      !! the entry time (first call ⇒ elastic m₀), then advances both channels' memory.
-      !! The SLE-coupled driver instead calls begin_step / solve_m / s_rot / commit so
-      !! it can iterate the rotation ↔ sea-level fixed point before committing.
+      !! surface mass load `load` [kg m⁻²] (grid; analysed here): begin_step + solve_m +
+      !! commit. Reports m at the entry time (first call ⇒ elastic m₀), then advances
+      !! both channels' memory. The SLE instead steps it with rotation_open_step /
+      !! trial / close_step inside its own fixed point.
       type(rotation_state), intent(inout) :: self
       type(sht_grid),        intent(in)    :: sht
       real(wp),              intent(in)    :: load(:,:)
       real(wp),              intent(in)    :: dt
+      real(wp),    allocatable :: g(:,:)
+      complex(wp), allocatable :: load_lm(:)
       if (.not. self%enabled) return
+      g = load                                    ! analysis overwrites its input
+      allocate(load_lm(sht%nlm))
+      call sht_grid_analysis(sht, g, load_lm)
       call rotation_begin_step(self, sht, dt)
-      call rotation_solve_m(self, sht, load)
+      call rotation_solve_m(self, sht, load_lm)
       call rotation_commit(self, sht)
    end subroutine rotation_update
 
@@ -254,7 +333,96 @@ contains
       call channel_destroy(self%tidal_ch)
       self%m = (0.0_wp, 0.0_wp);  self%time = 0.0_wp
       self%k_s = 0.0_wp;  self%kTe = 0.0_wp;  self%hTe = 0.0_wp
+      if (allocated(self%step0%load_mem)) deallocate(self%step0%load_mem, self%step0%tidal_mem)
+      if (allocated(self%saved%load_mem)) deallocate(self%saved%load_mem, self%saved%tidal_mem)
    end subroutine rotation_destroy
+
+   ! === stepping with the solid Earth ========================================
+   ! The SLE solve iterates rsl ↔ load to a fixed point at the END of a solid-Earth
+   ! step [t, t+dt]. The rotation joins that fixed point: each iteration's load sets
+   ! m(t+dt) (rotation_trial), whose s_rot enters that iteration's sea surface, and
+   ! the step is committed with the converged load (rotation_close_step). A step
+   ! longer than the channels' forward-Euler ceiling is sub-cycled with the load
+   ! held; m(t+dt) stays affine in the load, so the trial can be repeated freely from
+   ! the step-start state.
+
+   subroutine rotation_open_step(self, sht, dt)
+      !! Open a solid-Earth step of length dt [s] (0 for a report-only solve): record
+      !! the step-start state, split dt into n_cycle ≤ dt_fe_max sub-steps, and freeze
+      !! the first sub-step's drift (a function of the step-start memory alone).
+      type(rotation_state), intent(inout) :: self
+      type(sht_grid),        intent(in)    :: sht
+      real(wp),              intent(in)    :: dt
+      if (.not. self%enabled) return
+      call snapshot_take(self, self%step0)
+      self%n_cycle  = max(1, ceiling(dt/self%dt_fe_max - 1.0e-9_wp))
+      self%dt_cycle = dt/real(self%n_cycle, wp)
+      call rotation_begin_step(self, sht, self%dt_cycle)
+   end subroutine rotation_open_step
+
+   subroutine rotation_trial(self, sht, load_lm)
+      !! m at the end of the open step under the surface load `load_lm` [kg m⁻²], held
+      !! across it. Starts from the step-start state every call (pure in the step),
+      !! commits all but the last sub-step, and leaves the last one's drift frozen so
+      !! rotation_s_rot and rotation_close_step act on it. A single-cycle step (the
+      !! usual case: the solid Earth's own sub-step is already within dt_fe_max) never
+      !! leaves the step-start memory, so its drift, frozen at open, is reused as is.
+      type(rotation_state), intent(inout) :: self
+      type(sht_grid),        intent(in)    :: sht
+      complex(wp),           intent(in)    :: load_lm(:)
+      integer :: k
+      if (.not. self%enabled) return
+      if (self%n_cycle == 1) then
+         call rotation_solve_m(self, sht, load_lm)
+         return
+      end if
+      call snapshot_put(self, self%step0)
+      do k = 1, self%n_cycle
+         call rotation_begin_step(self, sht, self%dt_cycle)
+         call rotation_solve_m(self, sht, load_lm)
+         if (k < self%n_cycle) call rotation_commit(self, sht)
+      end do
+   end subroutine rotation_trial
+
+   subroutine rotation_close_step(self, sht)
+      !! Commit the last sub-step of the open step with the last trial's m and load.
+      type(rotation_state), intent(inout) :: self
+      type(sht_grid),        intent(in)    :: sht
+      if (.not. self%enabled) return
+      call rotation_commit(self, sht)
+   end subroutine rotation_close_step
+
+   subroutine rotation_save_state(self)
+      !! The stepper's buffer, alongside response_save_state.
+      type(rotation_state), intent(inout) :: self
+      if (.not. self%enabled) return
+      call snapshot_take(self, self%saved)
+   end subroutine rotation_save_state
+
+   subroutine rotation_restore_state(self)
+      !! Back to the state of the last rotation_save_state (a rejected step).
+      type(rotation_state), intent(inout) :: self
+      if (.not. self%enabled) return
+      call snapshot_put(self, self%saved)
+   end subroutine rotation_restore_state
+
+   subroutine snapshot_take(self, s)
+      type(rotation_state), intent(in)    :: self
+      type(rot_snapshot),   intent(inout) :: s
+      integer :: ne
+      ne = rotation_ne(self)
+      if (.not. allocated(s%load_mem)) &
+         allocate(s%load_mem(NLAM, ne, ROT_NCOMP), s%tidal_mem(NLAM, ne, ROT_NCOMP))
+      call rotation_get_memory(self, s%m, s%load_mem, s%tidal_mem)
+      s%time = self%time
+   end subroutine snapshot_take
+
+   subroutine snapshot_put(self, s)
+      type(rotation_state), intent(inout) :: self
+      type(rot_snapshot),   intent(in)    :: s
+      call rotation_set_memory(self, s%m, s%load_mem, s%tidal_mem)
+      self%time = s%time
+   end subroutine snapshot_put
 
    ! === restart serialization =================================================
    ! The prognostic state of the rotation solver is the polar motion m plus both
@@ -310,32 +478,21 @@ contains
       ch%Cre = mem(:,:,5);  ch%Cim = mem(:,:,6)
    end subroutine unpack_channel
 
-   ! === degree-2 inertia from the load (3-D-ready grid quadrature) =============
+   ! === degree-2 inertia from the load ========================================
 
-   complex(wp) function inertia21(sht, load, a) result(I21)
-      !! Off-diagonal inertia perturbation I₁₃ + i I₂₃ of a surface mass load on the
-      !! Gauss grid: I₁₃ = −a⁴∫σ sinθcosθ cosφ dΩ, I₂₃ = −a⁴∫σ sinθcosθ sinφ dΩ
-      !! (= −a⁴∫σ sinθcosθ e^{iφ} dΩ, the degree-2 order-1 mass moment). Direct
-      !! quadrature — no spherical-harmonic normalization enters, so it is exact for
-      !! any (3-D) load field.
+   complex(wp) function rotation_inertia21(sht, load_lm, a) result(I21)
+      !! Off-diagonal inertia perturbation I₁₃ + i I₂₃ = −a⁴∫σ sinθcosθ e^{iφ} dΩ of a
+      !! surface mass load (the degree-2 order-1 mass moment), from the load's (2,1)
+      !! coefficient Q: with orthonormal harmonics and no Condon-Shortley phase,
+      !! Q = 3N₂₁ ∫σ sinθcosθ e^{−iφ} dΩ (N₂₁ = √(5/24π)), so I = −a⁴ conj(Q)/(3N₂₁).
+      !! The analysis is Gauss quadrature on the same grid as a direct quadrature, so
+      !! the two agree to round-off for any (3-D) load (test_rotation_sle checks it).
       type(sht_grid), intent(in) :: sht
-      real(wp),       intent(in) :: load(:,:)   !! (nphi, nlat) [kg m⁻²]
+      complex(wp),    intent(in) :: load_lm(:)   !! (nlm) [kg m⁻²]
       real(wp),       intent(in) :: a
-      real(wp), allocatable :: w13(:,:), w23(:,:)
-      real(wp) :: st, ct, sc2
-      integer  :: il, ip
-      allocate(w13(sht%nphi, sht%nlat), w23(sht%nphi, sht%nlat))
-      do il = 1, sht%nlat
-         st  = sin(sht%colat(il));  ct = cos(sht%colat(il))
-         sc2 = st*ct                                   ! sinθ cosθ
-         do ip = 1, sht%nphi
-            w13(ip,il) = load(ip,il)*sc2*cos(sht%lon(ip))
-            w23(ip,il) = load(ip,il)*sc2*sin(sht%lon(ip))
-         end do
-      end do
-      I21 = cmplx(-a**4*sht_grid_surface_integral(sht, w13), &
-                  -a**4*sht_grid_surface_integral(sht, w23), wp)
-   end function inertia21
+      I21 = -a**4*conjg(load_lm(sht_grid_lmidx(sht, JROT, 1))) &
+            / (3.0_wp*sqrt(5.0_wp/(24.0_wp*pi)))
+   end function rotation_inertia21
 
    ! === secular (fluid) tidal Love number =====================================
 
@@ -371,6 +528,14 @@ contains
    end function fluid_tidal_k
 
    ! === deg2_channel ==========================================================
+
+   subroutine channel_set_rate(self, MkPerDt)
+      !! Set the per-element rate μ/η and rescale Mk at the current Δt; memory kept.
+      type(deg2_channel), intent(inout) :: self
+      real(wp),           intent(in)    :: MkPerDt(:)
+      self%MkPerDt = MkPerDt
+      self%Mk      = self%MkPerDt*self%dt
+   end subroutine channel_set_rate
 
    subroutine channel_init(self, earth, mesh, dt, tidal)
       !! Assemble the degree-2 operator, the unit-forcing response (Fe + nodal U,V),

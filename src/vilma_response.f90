@@ -50,6 +50,7 @@ module vilma_response
    public :: response_save_state, response_restore_state, response_stash_coarse
    public :: response_coarse_fine_error, response_max_rate, response_memory_norm
    public :: response_enable_lateral_visc, response_enable_lateral_visc_from_nodes
+   public :: response_radial_rate
 
    integer, parameter :: RESP_NULL = 0, RESP_ELASTIC = 1, RESP_VE = 2
 
@@ -1167,6 +1168,26 @@ contains
       call response_enable_lateral_visc(self, sht, pert)
       deallocate(pert)
    end subroutine response_enable_lateral_visc_from_nodes
+
+   function response_radial_rate(self) result(rate)
+      !! The radial profile of the viscosity the response integrates, as the per-element
+      !! Maxwell rate μ/η (ne). A 1-D element gives its scalar rate, which after a
+      !! lateral-viscosity enable is already the lateral geometric mean; a genuinely
+      !! 3-D element gives the lateral geometric mean of its grid rate (the unweighted
+      !! grid mean of log10 η, as the 1-D collapse in enable_lateral_visc takes it).
+      !! Elastic/fluid elements stay 0. This is what a radially symmetric consumer
+      !! (the degree-2 rotation channels) should see.
+      type(response), intent(in) :: self
+      real(wp) :: rate(self%ne)
+      integer  :: k, e
+      rate = self%MkPerDt
+      if (.not. self%lat_visc) return
+      do k = 1, self%ne3d
+         e = self%e3d(k)
+         rate(e) = 10.0_wp**(sum(log10(self%MkPerDt3(:,:,e))) &
+                             / real(size(self%MkPerDt3,1)*size(self%MkPerDt3,2), wp))
+      end do
+   end function response_radial_rate
 
    subroutine advance_memory_3d(self, sht, sigma_lm)
       !! Tensor-correct pseudo-spectral FE memory advance for laterally-varying
