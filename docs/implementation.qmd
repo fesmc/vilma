@@ -2,16 +2,16 @@
 title: "Implementation and attribution"
 ---
 
-VILMA v2 is a modern-Fortran implementation of published GIA physics,
+VILMA2 is a modern-Fortran implementation of published GIA physics,
 built on a small set of well-established numerical libraries. This page
 records what the model is built on, and what informed its development and
 validation.
 
 ## Physics and references
 
-VILMA v2 reproduces the physics of **VILMA-v1**: an incompressible,
+VILMA2 reproduces the physics of **VILMA1**: an incompressible,
 self-gravitating, Maxwell-viscoelastic sphere with rotational feedback and a
-full migrating-coastline sea-level equation. VILMA-v1's character is documented
+full migrating-coastline sea-level equation. VILMA1's character is documented
 in @Albrecht2024 and @Bagge2021. The numerical method follows @Martinec2000,
 with rotation from @MartinecHagedoorn2014 and the sea-level equation from
 @KMM2005 and @Martinec2018.
@@ -48,7 +48,7 @@ See [Solver](discretization/solver.qmd).
 ## Codebases and datasets that informed the validation
 
 Several existing codebases provided independent reference solutions and
-datasets used during validation of VILMA. Each implements the physics in a somewhat
+datasets used during validation of VILMA2. Each implements the physics in a somewhat
 different way, which was helpful for understanding the method, and each
 supplied reference data used in the benchmark pages:
 
@@ -84,4 +84,4 @@ record, and keeps all spherical-harmonic transforms inside.
 See the repository for the current license. When citing the method, cite the
 primary sources — above all @Martinec2000 for the spectral–finite-element
 approach, and @Spada2011 and @Martinec2018 for the benchmarks against which
-VILMA is validated.
+VILMA2 is validated.

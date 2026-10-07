@@ -4,7 +4,7 @@ program dump_reference
    !! machine-readable NetCDF reference data (ncio), one file per topic.
    !!
    !! Usage:  dump_reference.x [outdir] [item ...]
-   !!   outdir  default ./reference (run from the VILMA root)
+   !!   outdir  default ./reference (run from the VILMA2 root)
    !!   items   any of: sht radial ve_degree response sle disc rotation coupling
    !!           martinec visc3d martinec_sle   (default: all)
    !!
@@ -40,7 +40,7 @@ program dump_reference
    use ncio
    implicit none
 
-   character(len=*), parameter :: VILMA_ROOT = "./"   ! run from the VILMA root
+   character(len=*), parameter :: VILMA_ROOT = "./"   ! run from the VILMA2 root
    character(len=*), parameter :: EARTH_NAME = "M3-L70-V01"
    integer,  parameter :: LMAX32 = 32
    real(wp), parameter :: DT100 = 100.0_wp*sec_per_year     ! 100 yr in s
@@ -110,7 +110,7 @@ contains
       !! Global provenance attributes common to every file.
       character(len=*), intent(in) :: f, item
       call nc_write_attr(f, "item", item)
-      call nc_write_attr(f, "source", "VILMA Fortran tests/dump_reference.f90")
+      call nc_write_attr(f, "source", "VILMA2 Fortran tests/dump_reference.f90")
       call nc_write_attr(f, "earth_model", EARTH_NAME)
       call nc_write_attr(f, "grav_G", grav_G)
       call nc_write_attr(f, "sec_per_year", sec_per_year)

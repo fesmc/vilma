@@ -6,7 +6,7 @@ A redistribution of surface mass (ice, ocean water) and the resulting solid-Eart
 deformation change the planet's inertia tensor, which perturbs the rotation
 vector — **true polar wander** (TPW). The shifted rotation in turn alters the
 centrifugal potential, itself a **degree-2** surface load that drives further
-deformation and sea-level change. VILMA implements this two-way
+deformation and sea-level change. VILMA2 implements this two-way
 **rotational feedback** in the time domain, consistent with the explicit
 memory-stress machinery.
 

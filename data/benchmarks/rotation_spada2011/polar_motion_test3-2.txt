@@ -7,7 +7,7 @@
 #
 # Quantities:  |m|    = modulus of polar motion        [degrees]
 #              |mdot| = modulus of rate of polar motion [degrees / Ma]   (Ma = 1e6 yr)
-# Two contributors (both NORMAL-MODE codes; VILMA/Vk did NOT provide m for this test):
+# Two contributors (both NORMAL-MODE codes; VILMA1/Vk did NOT provide m for this test):
 #   Vb = Mathematica matrix-propagator (Sabadini & Vermeersen)
 #   Gs = TABOO (Spada), code PMTF
 # Two cases:

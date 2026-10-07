@@ -394,7 +394,7 @@ contains
       character(*), intent(in) :: cols
       character(len=8) :: d
       call date_and_time(date=d)
-      write(u,'(a)') '# '//CODE//' (VILMA v2, incompressible)'
+      write(u,'(a)') '# '//CODE//' (VILMA2, incompressible)'
       write(u,'(a)') '# '//trim(tname)//' ('//trim(forcing)//'), lmax='//itoa(lmax)
       write(u,'(a)') '# '//AUTHOR
       write(u,'(a)') '# '//d(1:4)//'-'//d(5:6)//'-'//d(7:8)

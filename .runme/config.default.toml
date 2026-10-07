@@ -21,7 +21,7 @@ hpc = "CHANGEME"
 account = "CHANGEME"
 
 # Job name used by sbatch (#SBATCH --job-name).
-jobname = "VILMA"
+jobname = "vilma"
 
 # OpenMP threads. 0 disables the OpenMP block in the submit script.
 omp = 8

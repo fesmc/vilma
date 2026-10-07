@@ -1,6 +1,6 @@
 module vilma_coupling
    !! Top-level coupling API — the contract a host climate/ice model (CLIMBER-X)
-   !! drives the solid-Earth model through. Mirrors the VILMA-v1 wrapper in CLIMBER-X
+   !! drives the solid-Earth model through. Mirrors the VILMA1 wrapper in CLIMBER-X
    !! (src/geo/vilma.F90): ice thickness goes in, relative sea level and bedrock
    !! elevation come out. The model OWNS its Gauss-Legendre transform grid (built
    !! from se%par at init) and OWNS the remap between the host grid and that Gauss
@@ -55,7 +55,7 @@ module vilma_coupling
    public :: VILMA_UNSET
 
    !! Fill value for a diagnostic the ACTIVE backend does not produce. Only the
-   !! VILMA-v1 backend leaves anything unset (see the "known gaps" note on the
+   !! VILMA1 backend leaves anything unset (see the "known gaps" note on the
    !! solid_earth type); with the native solver every field is populated. It is a
    !! wildly unphysical number on purpose, so an unset value cannot be mistaken for
    !! a computed zero, and it matches the missing-value convention used by the
@@ -100,12 +100,12 @@ module vilma_coupling
       !! (the horizontal-displacement output) can evaluate the response at it.
       complex(wp), allocatable :: sigma_lm(:)
 
-      !! Optional VILMA-v1 backend (par%solver = "v1"), for a like-for-like
+      !! Optional VILMA1 backend (par%solver = "v1"), for a like-for-like
       !! comparison behind this same API. When active, `resp`/`sle`/`stepper`/
-      !! `rotation`/`earth` above are NOT built — VILMA-v1 owns the physics — and the
+      !! `rotation`/`earth` above are NOT built — VILMA1 owns the physics — and the
       !! diagnostics they would otherwise fill are left at VILMA_UNSET. Specifically:
-      !!   worst_mass_resid : no analogue (VILMA-v1 reports no SLE mass residual)   -> VILMA_UNSET
-      !!   stepper%*        : VILMA-v1 does its own internal time stepping          -> VILMA_UNSET
+      !!   worst_mass_resid : no analogue (VILMA1 reports no SLE mass residual)   -> VILMA_UNSET
+      !!   stepper%*        : VILMA1 does its own internal time stepping          -> VILMA_UNSET
       !!   resp%t_* / sle%t_* / stepper%t_guard : those phases do not exist      -> stay 0
       !! while `rsl`, `z_bed`, `C` and `bsl` ARE populated (see solid_earth_update).
       !! `t_solver` below is the one timer that is meaningful for both backends.
@@ -121,8 +121,8 @@ module vilma_coupling
       !! residual bucket. See sle_solver's accumulators for the SLE's own split.
       real(wp)                 :: t_remap = 0.0_wp  !! host<->Gauss remap, in and out
       real(wp)                 :: t_solver = 0.0_wp !! wall-clock [s] inside the backend's own
-         !! solve, comparable across backends: for "v1" it is VILMA-v1's time_evolution
-         !! (excluding the Gauss<->VILMA-v1 remap, which is in %t_remap); for the native
+         !! solve, comparable across backends: for "v1" it is VILMA1's time_evolution
+         !! (excluding the Gauss<->VILMA1 remap, which is in %t_remap); for the native
          !! solver it is left 0 because the finer-grained split above already covers it.
 
       ! host-grid I/O fields (== the gg fields when passthrough); the host reads these
@@ -183,11 +183,11 @@ contains
       call to_gauss(self, h_ice_eq, self%gg%h_ice_eq, conserve_mass=.true.)    ! ice: mass
 
       if (self%use_vilma_v1) then
-         ! VILMA-v1 owns the physics, so NONE of the native sub-solvers (earth
+         ! VILMA1 owns the physics, so NONE of the native sub-solvers (earth
          ! structure, response, SLE, adaptive stepper, rotation) are built — that is
          ! the point of the backend swap. The response is initialised NULL so the I/O
          ! layer sees a memoryless model and writes only the common diagnostics:
-         ! there is no VILMA Maxwell memory to persist, and VILMA-v1 persists its
+         ! there is no VILMA2 Maxwell memory to persist, and VILMA1 persists its
          ! own state through its own restart files.
          call response_init_null(self%resp)
       else
@@ -220,21 +220,21 @@ contains
       allocate(self%rsl(size(z_bed_eq,1), size(z_bed_eq,2)), source=0.0_wp)
       allocate(self%z_bed, source=z_bed_eq)
 
-      ! VILMA-v1 backend: hand it the SAME reference and start-slice ice, already on
+      ! VILMA1 backend: hand it the SAME reference and start-slice ice, already on
       ! the model Gauss grid. vilma_v1 owns the second remap leg (model Gauss <->
-      ! VILMA-v1's own grid at par%vilma_v1_jmax) and VILMA-v1's whole file-based setup.
+      ! VILMA1's own grid at par%vilma_v1_jmax) and VILMA1's whole file-based setup.
       if (self%use_vilma_v1) then
          call vilma_v1_init(self%vilma_v1, self%par, self%sht, &
                             self%gg%z_bed_eq, self%gg%h_ice_eq, self%gg%h_ice)
-         self%worst_mass_resid = VILMA_UNSET      ! no analogue in VILMA-v1; see the type
+         self%worst_mass_resid = VILMA_UNSET      ! no analogue in VILMA1; see the type
       end if
    end subroutine solid_earth_init
 
    subroutine solid_earth_check_solver(par)
       !! Validate &vilma solver and, for "v1", that this binary actually HAS the
-      !! optional VILMA-v1 backend. Split out of solid_earth_init so a caller can fail
+      !! optional VILMA1 backend. Split out of solid_earth_init so a caller can fail
       !! the moment it has read the configuration, before doing any work: a namelist
-      !! typo, or asking for VILMA-v1 in a default build, should cost nothing.
+      !! typo, or asking for VILMA1 in a default build, should cost nothing.
       !! vilma_v1_require aborts with an actionable rebuild message — never a link
       !! error and never a crash.
       type(vilma_param_class), intent(in) :: par
@@ -377,9 +377,9 @@ contains
       call system_clock(pc1);  self%t_remap = self%t_remap + real(pc1-pc0,wp)/prate
 
       if (self%use_vilma_v1) then
-         ! --- VILMA-v1 backend ------------------------------------------------------
+         ! --- VILMA1 backend ------------------------------------------------------
          ! Same contract, different solver: ice in, relative sea level out. vilma_v1
-         ! remaps ice_new (model Gauss grid) onto VILMA-v1's own grid, advances VILMA-v1
+         ! remaps ice_new (model Gauss grid) onto VILMA1's own grid, advances VILMA1
          ! over [time, time+dt_yr], and maps its rsl back onto the model Gauss grid,
          ! so everything below — and every consumer of se%gg / se%rsl / se%z_bed — is
          ! on exactly the grids it is for the native solver.
@@ -389,20 +389,20 @@ contains
          self%gg%z_bed = self%gg%z_bed_eq - self%gg%rsl
          self%time     = self%time + dt_yr
 
-         ! Diagnostics VILMA-v1 does not hand back. DERIVED HONESTLY from VILMA-v1's own
+         ! Diagnostics VILMA1 does not hand back. DERIVED HONESTLY from VILMA1's own
          ! output, using the SAME formulas the native solver uses, so the two
          ! backends' diagnostics are like-for-like:
-         !   C   — flotation (vilma_sle ocean_function) applied to VILMA-v1's updated bed
-         !         and the current ice. This is VILMA's diagnostic of VILMA-v1's
-         !         state, NOT VILMA-v1's internal ocean function (which the library does
-         !         not expose on this grid); it can differ from VILMA-v1's own coastline
+         !   C   — flotation (vilma_sle ocean_function) applied to VILMA1's updated bed
+         !         and the current ice. This is VILMA2's diagnostic of VILMA1's
+         !         state, NOT VILMA1's internal ocean function (which the library does
+         !         not expose on this grid); it can differ from VILMA1's own coastline
          !         by a grid cell where the two flotation rules disagree.
          !   bsl — update_bsl's barystatic integral over that C and the ice anomaly.
-         !         Again a VILMA diagnostic of VILMA-v1's state, not VILMA-v1's own
+         !         Again a VILMA2 diagnostic of VILMA1's state, not VILMA1's own
          !         ocean bookkeeping (vega_oce.dat).
          call ocean_function(self%gg%z_bed, self%gg%h_ice, self%gg%C)
          call update_bsl(self)
-         ! NOT derivable: VILMA-v1 reports no sea-level-equation mass residual, so this
+         ! NOT derivable: VILMA1 reports no sea-level-equation mass residual, so this
          ! stays at the documented fill value rather than a made-up number. The
          ! driver skips printing it (see vilma_drive).
          self%worst_mass_resid = VILMA_UNSET
@@ -480,18 +480,18 @@ contains
       if (.not. pre_1d .and. t_max <= 0.0_wp) return         ! nothing to do
 
       ! KNOWN GAP (documented, not faked): this spin-up relaxes the model's own
-      ! viscous memory while HOLDING the reference as the datum. VILMA-v1 owns its
+      ! viscous memory while HOLDING the reference as the datum. VILMA1 owns its
       ! memory internally and advances it only along its own time axis, so the
       ! reference-held relaxation cannot be reproduced without silently consuming
-      ! VILMA-v1's clock and desynchronising it from the forcing. Refuse plainly
+      ! VILMA1's clock and desynchronising it from the forcing. Refuse plainly
       ! rather than run something that looks like a spin-up but is not.
       if (self%use_vilma_v1) then
          write(*,'(a)') ' solid_earth_spinup: not available with solver="v1".'
-         write(*,'(a)') '   VILMA-v1 advances its own viscous memory along its own time axis;'
-         write(*,'(a)') '   the reference-held relaxation this routine performs has no VILMA-v1'
+         write(*,'(a)') '   VILMA1 advances its own viscous memory along its own time axis;'
+         write(*,'(a)') '   the reference-held relaxation this routine performs has no VILMA1'
          write(*,'(a)') '   analogue. Set equil_time_max=0 and pre_spinup_1d=.false. in &vilma,'
          write(*,'(a)') '   and start the transient from the full (e.g. LGM->present) window,'
-         write(*,'(a)') '   which is how CLIMBER-X drives VILMA-v1. See doc/vilma-v1-backend.md.'
+         write(*,'(a)') '   which is how CLIMBER-X drives VILMA1. See doc/vilma-v1-backend.md.'
          error stop 'solid_earth_spinup: unsupported with solver="v1" (see message above)'
       end if
 

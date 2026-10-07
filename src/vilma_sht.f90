@@ -6,7 +6,7 @@ module vilma_sht
    !! Gauss-Legendre spatial grid (where lateral viscosity and the sea-level
    !! equation live) and the spectral coefficients (where the radial solves are
    !! per-degree and decoupled). This module isolates the SHTns C API behind a
-   !! small derived type so the rest of VILMA never touches iso_c_binding.
+   !! small derived type so the rest of VILMA2 never touches iso_c_binding.
    !!
    !! Convention: fully-normalized real spherical harmonics, no Condon-Shortley
    !! phase (SHT_ORTHONORMAL + SHT_NO_CS_PHASE), on a Gauss grid with a

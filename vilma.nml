@@ -1,5 +1,5 @@
 ! ====================================================================
-! VILMA run configuration — the file you edit / pass on the command line:
+! VILMA2 run configuration — the file you edit / pass on the command line:
 !     bin/vilma.x [this-file.nml]      (default: vilma.nml)
 ! It is overlaid on the physics defaults in input/vilma_defaults.nml
 ! (loaded automatically). Only the parameters here override the defaults, so

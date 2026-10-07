@@ -1,5 +1,5 @@
 module vilma_control
-   !! Standalone-program control record: the run-management settings the VILMA
+   !! Standalone-program control record: the run-management settings the VILMA2
    !! *executables* need but the solid-Earth model itself does not. Loaded from one
    !! namelist group `&ctl`, separate from the physics/numerics record `&vilma`
    !! (vilma_params). These are the forcing/reference/output file paths, variable names,

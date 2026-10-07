@@ -1,6 +1,6 @@
-# The optional VILMA-v1 backend (`solver = "v1"`)
+# The optional VILMA1 backend (`solver = "v1"`)
 
-VILMA can run with **VILMA-v1** (Martinec/Klemann — the CLIMBER-X `i_geo=2`
+VILMA2 can run with **VILMA1** (Martinec/Klemann — the CLIMBER-X `i_geo=2`
 solid-earth backend) in place of its own solver, behind the *same* driver,
 namelist, forcing, remap and output. That makes an v2-vs-v1 comparison a one-line
 namelist change instead of two different experiments: identical ice forcing,
@@ -10,14 +10,14 @@ This is a **core-developer facility**, not a user feature.
 
 ---
 
-## 1. VILMA-v1 is NOT a dependency
+## 1. VILMA1 is NOT a dependency
 
-The default build (`make vilma`) does not reference a single VILMA-v1 symbol,
-needs no `vilma1/include`, and does not link `vega_pism.a`. VILMA-v1 is a
+The default build (`make vilma`) does not reference a single VILMA1 symbol,
+needs no `vilma1/include`, and does not link `vega_pism.a`. VILMA1 is a
 hand-installed, precompiled library that is absent on most machines, and it must
 stay that way.
 
-Everything VILMA-v1-specific lives inside `#ifdef VILMA_V1` in `src/vilma_v1.f90`,
+Everything VILMA1-specific lives inside `#ifdef VILMA_V1` in `src/vilma_v1.f90`,
 which the `vilma_v1=1` make switch turns on (`config/common.mk`, mirroring
 CLIMBER-X's own `vilma=` toggle). With `vilma_v1=0` — the default —
 that file compiles to a pure-Fortran stub, and asking for `solver="v1"` at
@@ -25,7 +25,7 @@ runtime aborts at init with an actionable message:
 
 ```
  ======================================================================
-  VILMA: solver="v1" requested, but this binary has no VILMA-v1.
+  VILMA2: solver="v1" requested, but this binary has no VILMA1.
  ======================================================================
   ...
   To use it, rebuild with the backend switched on:
@@ -39,9 +39,9 @@ Not a link error, not a crash, not a silent no-op.
 
 ---
 
-## 2. Installing VILMA-v1
+## 2. Installing VILMA1
 
-VILMA-v1 is distributed as a precompiled library, not as source you build here:
+VILMA1 is distributed as a precompiled library, not as source you build here:
 
 ```
 $VILMA_V1_ROOT/
@@ -61,7 +61,7 @@ Two hard constraints on the install:
   compatible `ifort`/`ifx` can read them; gfortran cannot.
 * **netCDF-Fortran ABI.** See §6 — this is the one that will actually bite you.
 
-VILMA-v1 needs no LAPACK, no BLAS and no MPI (it carries its own banded solvers and
+VILMA1 needs no LAPACK, no BLAS and no MPI (it carries its own banded solvers and
 FFT), but it *is* OpenMP-parallel, so build with `openmp=1` (the default).
 
 ---
@@ -81,9 +81,9 @@ Then, in the run config's `&vilma` group:
 
     lmax   = 32                       ! the COUPLING + OUTPUT grid (see §4)
 
-    vilma_v1_jmax         = 170          ! VILMA-v1's own spectral degree
+    vilma_v1_jmax         = 170          ! VILMA1's own spectral degree
     vilma_v1_input_dir    = "input/vilma"
-    vilma_v1_out_dir      = "vilma_v1"      ! VILMA-v1 scratch/output, created if absent
+    vilma_v1_out_dir      = "vilma_v1"      ! VILMA1 scratch/output, created if absent
     vilma_v1_grid_file    = "input/vilma/vilma_grid.nc"
     vilma_v1_visc_1d_file = "visko.inp"
     vilma_v1_visc_3d_file = "visc3d_Bagge2021.nc"   ! used only when l_visc_3d = .true.
@@ -92,12 +92,12 @@ Then, in the run config's `&vilma` group:
 
 `solver` defaults to `"v2"`, so **existing namelists are unaffected**.
 
-When `solver="v1"`, the `&vilma` settings that describe the *VILMA*
+When `solver="v1"`, the `&vilma` settings that describe the *VILMA2*
 solver — `earth`/layer arrays, `scheme`, `earth_response`, the `sle_*` knobs, the
-adaptive-Δt knobs, `rotation`, `equil_*`/`pre_spinup_1d` — are **ignored**. VILMA-v1
+adaptive-Δt knobs, `rotation`, `equil_*`/`pre_spinup_1d` — are **ignored**. VILMA1
 has its own earth structure, its own sea-level equation and its own time
 stepping. Only `lmax`/`nlat`/`nphi` (the coupling and output grid) and
-`l_visc_3d` (which sets VILMA-v1's `vg%l_mod`) are shared.
+`l_visc_3d` (which sets VILMA1's `vg%l_mod`) are shared.
 
 ---
 
@@ -108,23 +108,23 @@ Three grids, and the boundaries matter:
 | grid | size (example) | who owns it |
 |---|---|---|
 | host lon-lat | GLAC-1D's native grid | the forcing file; `vilma_drive`/`vilma_remap` map it away |
-| **model Gauss** | `lmax=32` → 128 × 66 | VILMA's Gauss-Legendre grid (`vilma_sht`) |
-| VILMA-v1 grid | `jmax=170` → 512 × 256 | VILMA-v1's own Gauss grid |
+| **model Gauss** | `lmax=32` → 128 × 66 | VILMA2's Gauss-Legendre grid (`vilma_sht`) |
+| VILMA1 grid | `jmax=170` → 512 × 256 | VILMA1's own Gauss grid |
 
 * The driver remaps the forcing onto the **model Gauss grid**, exactly as for the
   native solver (`vilma_remap`, conservative).
 * `vilma_v1` owns the second leg and nothing else:
-  * model Gauss → VILMA-v1: **conservative** (`coords` `"con"`), for ice thickness
+  * model Gauss → VILMA1: **conservative** (`coords` `"con"`), for ice thickness
     and the reference fields;
-  * VILMA-v1 → model Gauss: **bilinear**, for relative sea level.
+  * VILMA1 → model Gauss: **bilinear**, for relative sea level.
   Weights are cached under `maps/`, keyed by grid dimensions.
 * `se%gg%*`, `se%rsl`, `se%z_bed` and the whole output file are on the **model
   Gauss grid** in both cases, which is what makes the comparison direct.
-* VILMA-v1's `rsl` is `real(dp)(nlat, nlon)` in metres, latitude-first and
+* VILMA1's `rsl` is `real(dp)(nlat, nlon)` in metres, latitude-first and
   north-first, positive = sea-level rise. `vilma_v1` transposes it before
   remapping, and checks its shape against `vilma_v1_grid_file` every step.
 
-`vilma_v1_jmax` and `vilma_v1_grid_file` must describe the same grid: VILMA-v1 derives its
+`vilma_v1_jmax` and `vilma_v1_grid_file` must describe the same grid: VILMA1 derives its
 working grid from `jmax` alone (`nlon` = smallest power of two > `3*jmax`,
 `nlat = nlon/2`; so `jmax=170` → 512 × 256 = N128). `vilma_v1_init` checks this
 and refuses a mismatch with a message naming both settings.
@@ -132,9 +132,9 @@ and refuses a mismatch with a message naming both settings.
 Two deliberate differences from CLIMBER-X's wrapper, both in the direction of a
 fairer comparison:
 
-* the ice delivered to VILMA-v1 is **globally rescaled** so its mass equals the mass
+* the ice delivered to VILMA1 is **globally rescaled** so its mass equals the mass
   on the model Gauss grid as SHTns integrates it (CLIMBER-X does not rescale);
-* `loadh.inp` is written with VILMA's **own** `rho_ice`/`rho_water`
+* `loadh.inp` is written with VILMA2's **own** `rho_ice`/`rho_water`
   (931/1000) rather than CLIMBER-X's hard-coded 910/1020, so both backends turn
   the same ice thickness into the same load.
 
@@ -142,40 +142,40 @@ fairer comparison:
 
 ## 5. What is populated, and what is not
 
-`solid_earth` and `vilma_io` expose more than VILMA-v1 produces. Nothing here is faked.
+`solid_earth` and `vilma_io` expose more than VILMA1 produces. Nothing here is faked.
 
-### Populated (derived honestly from VILMA-v1 output)
+### Populated (derived honestly from VILMA1 output)
 
 | field | how |
 |---|---|
-| `rsl` | VILMA-v1's `mod_sle::rsl`, remapped to the model Gauss grid |
+| `rsl` | VILMA1's `mod_sle::rsl`, remapped to the model Gauss grid |
 | `z_bed` | `z_bed_eq - rsl`, the same reconstruction the native solver uses |
 | `h_ice` | the forcing, as remapped |
-| `C_ocean` | `vilma_sle`'s `ocean_function` (flotation) applied to VILMA-v1's updated bed and the current ice. This is **VILMA's diagnostic of VILMA-v1's state**, not VILMA-v1's internal ocean function — the library keeps `ocfunc` private and does not expose it on this grid. The two can differ by a cell where the flotation rules disagree. |
-| `bsl` | `update_bsl`'s barystatic integral over that `C_ocean` and the ice anomaly — again a VILMA diagnostic of VILMA-v1's state, computed by the *same* formula for both backends. VILMA-v1's own water-layer scalar is written to `<vilma_v1_out_dir>/vega_oce.dat`, column 4 (columns 5–6 are its degree-0 load and ocean-area fraction) if you want VILMA-v1's internal number instead. |
+| `C_ocean` | `vilma_sle`'s `ocean_function` (flotation) applied to VILMA1's updated bed and the current ice. This is **VILMA2's diagnostic of VILMA1's state**, not VILMA1's internal ocean function — the library keeps `ocfunc` private and does not expose it on this grid. The two can differ by a cell where the flotation rules disagree. |
+| `bsl` | `update_bsl`'s barystatic integral over that `C_ocean` and the ice anomaly — again a VILMA2 diagnostic of VILMA1's state, computed by the *same* formula for both backends. VILMA1's own water-layer scalar is written to `<vilma_v1_out_dir>/vega_oce.dat`, column 4 (columns 5–6 are its degree-0 load and ocean-area fraction) if you want VILMA1's internal number instead. |
 | `t_solver` | wall-clock inside `time_evolution` |
-| `t_remap` | wall-clock in the Gauss ↔ VILMA-v1 remap |
+| `t_remap` | wall-clock in the Gauss ↔ VILMA1 remap |
 
 ### Not populated (documented fill value, writer/printer skips it)
 
 | field | why | value |
 |---|---|---|
-| `worst_mass_resid` | VILMA-v1 reports no sea-level-equation mass residual. | `VILMA_UNSET = -9999` (`vilma_coupling`). The driver omits it from the per-step line instead of printing it; it is not written to NetCDF by either backend. |
-| `resp%t_drift`, `resp%t_mem`, `sle%t_*`, `stepper%t_guard`, `stepper%n_*` | those phases do not exist — there is no drift solve, no Maxwell memory advance, no VILMA SLE iteration and no adaptive sub-stepping. | left at 0; `vilma_drive` **skips** the two native breakdown blocks and the sub-step line entirely and prints a VILMA-v1-specific breakdown (`time_evolution` / remap / other) instead. |
-| `dt_try` and the `tau_*` / `phi_*` memory fields | no VILMA memory state exists. | the response is initialised NULL, so `vilma_io` writes only the common diagnostic set and no memory dimensions. |
+| `worst_mass_resid` | VILMA1 reports no sea-level-equation mass residual. | `VILMA_UNSET = -9999` (`vilma_coupling`). The driver omits it from the per-step line instead of printing it; it is not written to NetCDF by either backend. |
+| `resp%t_drift`, `resp%t_mem`, `sle%t_*`, `stepper%t_guard`, `stepper%n_*` | those phases do not exist — there is no drift solve, no Maxwell memory advance, no VILMA2 SLE iteration and no adaptive sub-stepping. | left at 0; `vilma_drive` **skips** the two native breakdown blocks and the sub-step line entirely and prints a VILMA1-specific breakdown (`time_evolution` / remap / other) instead. |
+| `dt_try` and the `tau_*` / `phi_*` memory fields | no VILMA2 memory state exists. | the response is initialised NULL, so `vilma_io` writes only the common diagnostic set and no memory dimensions. |
 
 ### Refused rather than approximated
 
 * **`solid_earth_spinup`** (`equil_time_max > 0` or `pre_spinup_1d`) aborts with
   an explanatory message. It relaxes *this model's* viscous memory against a held
-  reference; VILMA-v1 advances its memory only along its own time axis, and faking
-  it would silently consume VILMA-v1's clock. Set `equil_time_max = 0` and
+  reference; VILMA1 advances its memory only along its own time axis, and faking
+  it would silently consume VILMA1's clock. Set `equil_time_max = 0` and
   `pre_spinup_1d = .false.` and drive the full window instead, which is how
-  CLIMBER-X runs VILMA-v1.
-* **`restart_in_file`** is refused: a VILMA restart carries the native
-  solver's memory, which has no VILMA-v1 counterpart. VILMA-v1 restarts through its own
+  CLIMBER-X runs VILMA1.
+* **`restart_in_file`** is refused: a VILMA2 restart carries the native
+  solver's memory, which has no VILMA1 counterpart. VILMA1 restarts through its own
   `r_restart`/`w_restart` files, which this driver does not wire up — so no
-  VILMA restart is written at the end of a VILMA-v1 run either.
+  VILMA2 restart is written at the end of a VILMA1 run either.
 
 ---
 
@@ -191,8 +191,8 @@ the name length is read from the wrong slot:
 * compiled ≥4.6, linked 4.5.x → `NetCDF: Name contains illegal characters`
 * compiled 4.5.x, linked ≥4.6 → segfault in `nf_def_var_quantize`
 
-The precompiled VILMA-v1 at DKRZ was built against **netCDF-Fortran ≥ 4.6**, while
-VILMA's `configme`-detected default on levante is **4.5.3**. Linking them
+The precompiled VILMA1 at DKRZ was built against **netCDF-Fortran ≥ 4.6**, while
+VILMA2's `configme`-detected default on levante is **4.5.3**. Linking them
 as-is builds and runs all the way through `setup` and most of the first
 `time_evolution`, then dies inside `sle_write_rsl`:
 
@@ -213,7 +213,7 @@ ifx -I/sw/spack-levante/netcdf-fortran-4.6.2-5t6lbs/include dv.f90 -o dv.x \
 ```
 
 So **everything in the binary — fesm-utils/ncio included — must be built against
-a netCDF-Fortran that matches VILMA-v1's.** On levante that means an Intel-built
+a netCDF-Fortran that matches VILMA1's.** On levante that means an Intel-built
 4.6.x, e.g. `netcdf-fortran-4.6.2-5t6lbs` with `netcdf-c-4.9.2-x7g75q`.
 
 Because `fesm-utils` is a *shared* checkout, do not re-point it in place. Build a
@@ -227,7 +227,7 @@ ln -s <fesm-utils>/{fftw,SHTns,lis} $FU/          # no netCDF in these
 #    edit $FU/Makefile: NC_FROOT / NC_CROOT / INC_NC / LIB_NC -> the 4.6.x pair
 ( cd $FU && make fesmutils-static openmp=1 )      # serial: its -j deps are incomplete
 
-# 2. VILMA against that, plus VILMA-v1
+# 2. VILMA2 against that, plus VILMA1
 A=/sw/spack-levante/netcdf-fortran-4.6.2-5t6lbs
 C=/sw/spack-levante/netcdf-c-4.9.2-x7g75q
 make clean
@@ -243,19 +243,19 @@ netCDF untouched. The clean long-term fix is to reconfigure the machine (and
 rebuild fesm-utils) onto a single netCDF-Fortran ≥ 4.6 for everything.
 
 Note that the requirement is a property of *the archive you install*, not of
-VILMA-v1 in general — an older VILMA-v1 build recipe found on this machine
+VILMA1 in general — an older VILMA1 build recipe found on this machine
 (`/home/m/m300792/ModelCodes/VILMA3D/Makefile`) compiles against 4.5.3, but the
 `vega_pism.a` actually installed at `VILMA_V1_ROOT` here was built elsewhere against
-a newer netCDF. If you install a different VILMA-v1, re-check with the `dv.f90`
+a newer netCDF. If you install a different VILMA1, re-check with the `dv.f90`
 reproducer above before assuming either version.
 
 If the link ever fails with `relocation truncated to fit: R_X86_64_32S`, add
-`-mcmodel=large -shared-intel` (VILMA-v1's own build uses them); the current install
+`-mcmodel=large -shared-intel` (VILMA1's own build uses them); the current install
 links cleanly without them.
 
-### 6b. VILMA-v1 must start from the reference state
+### 6b. VILMA1 must start from the reference state
 
-VILMA-v1 requires the first record of its load history to vanish against the
+VILMA1 requires the first record of its load history to vanish against the
 reference ice file, and aborts otherwise:
 
 ```
@@ -265,9 +265,9 @@ reference ice file, and aborts otherwise:
 
 So `vilma_v1` pins history slice 1 to the reference ice (`h_ice_eq`) and never
 rewrites it, exactly as CLIMBER-X does. The consequence is real and worth
-stating: **VILMA-v1 begins with zero load anomaly and zero viscous memory at `t0`.**
+stating: **VILMA1 begins with zero load anomaly and zero viscous memory at `t0`.**
 If the run's start-slice ice is not the reference ice — the normal case for
-`i_eq=1`, a present-day reference with an LGM start — VILMA-v1 absorbs the whole
+`i_eq=1`, a present-day reference with an LGM start — VILMA1 absorbs the whole
 start-vs-reference difference as a jump in the first interval, while the native
 solver measures a genuine departure from a relaxed reference. `vilma_v1_init`
 prints a WARNING when the two differ by more than 1 m.
@@ -278,9 +278,9 @@ with `h_ice_eq_file` set to the start-slice ice.
 
 ### 6c. Load ramping within an interval differs
 
-With `vg%l_load_hist = .false.` the ice-history file keeps two slices and VILMA-v1
+With `vg%l_load_hist = .false.` the ice-history file keeps two slices and VILMA1
 re-reads them every step. Slice 1 is pinned to the reference (6b) and the epoch
-coordinate is written once, so VILMA-v1's internal time runs past the labelled
+coordinate is written once, so VILMA1's internal time runs past the labelled
 window after the first interval and it then holds the load at the current slice.
 The native solver instead **ramps the load linearly** from the previous slice to
 the new one across the interval. Same end points, different path within a
@@ -288,27 +288,27 @@ coupling step; expect first-order-in-Δt differences from this alone.
 
 ### 6d. Other operational notes
 
-* **VILMA-v1 is a singleton.** All of its state is module-level `SAVE`d data, so
+* **VILMA1 is a singleton.** All of its state is module-level `SAVE`d data, so
   only one backend instance per process, and it is not thread-safe at the API
   level.
-* **Fixed unit numbers.** VILMA-v1 hardwires Fortran units 16, 23, 44–47, 55–58,
+* **Fixed unit numbers.** VILMA1 hardwires Fortran units 16, 23, 44–47, 55–58,
   66, 71–78, 80–93, 99. Do not open files on those from the host.
 * **Relative default paths.** Every `io_*%n` defaults to a relative `inp/`,
   `out/` or `restart/` path. `vilma_v1` sets them all explicitly — including
   `io_rsrpt` (the rotation-potential state), which CLIMBER-X's wrapper forgets,
   leaving it writing to `./restart/rotpot.log` relative to the process cwd.
   `io_lis` is the one exception that still lands in the cwd as `vega.lis`.
-* **120-character paths.** VILMA-v1 stores file names in `character(len=120)`.
+* **120-character paths.** VILMA1 stores file names in `character(len=120)`.
   `vilma_v1_init` checks `vilma_v1_out_dir` and fails loudly rather than letting a
   long path be truncated. Prefer a short relative `vilma_v1_out_dir`.
 * **`setup` is deferred.** It needs the time step and the start epoch, neither of
   which the `vilma_coupling` API supplies at init, so `vilma_v1` calls it on the
   first *advancing* update and takes `vg%dt` from that interval. A forcing axis
-  with a non-uniform cadence would therefore hand VILMA-v1 a step it was not
+  with a non-uniform cadence would therefore hand VILMA1 a step it was not
   configured for.
-* **`openmp=0` will not link** with `vilma_v1=1`: VILMA-v1 needs the OpenMP runtime
+* **`openmp=0` will not link** with `vilma_v1=1`: VILMA1 needs the OpenMP runtime
   (`__kmpc_fork_call`, `omp_get_wtime`). Build with `openmp=1` (the default).
-* **VILMA-v1's clock** is fed the model time in kyr (the forcing axis / 1000). Its
+* **VILMA1's clock** is fed the model time in kyr (the forcing axis / 1000). Its
   response depends only on time differences, so the labelling affects only its
   own diagnostic output files.
 * **`SLI_data.inp`** has no code references in this build; it is inert.
@@ -330,8 +330,8 @@ threads:
    vilma_write_step (out) =     7.8 ms (  1.1 %)
 
  [PROFILE] solid_earth_update breakdown (per step, wall-clock):
-   VILMA-v1 time_evolution  =   675.8 ms ( 99.4 % of update)
-   Gauss<->VILMA-v1 remap   =     4.1 ms (  0.6 % of update)
+   VILMA1 time_evolution  =   675.8 ms ( 99.4 % of update)
+   Gauss<->VILMA1 remap   =     4.1 ms (  0.6 % of update)
    other (diagnostics)   =     0.1 ms (  0.0 % of update)
  vilma: wrote out.nc
 ```

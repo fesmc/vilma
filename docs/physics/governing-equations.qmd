@@ -2,7 +2,7 @@
 title: "Governing equations"
 ---
 
-VILMA solves the equations of a **self-gravitating, incompressible,
+VILMA2 solves the equations of a **self-gravitating, incompressible,
 Maxwell-viscoelastic** sphere $\mathcal{B}$ of radius $a$ subject to a surface
 mass load. The formulation is the incremental, quasi-static field theory of
 @Martinec2000; the equation numbers in this section refer to that paper.

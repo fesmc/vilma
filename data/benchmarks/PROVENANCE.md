@@ -1,7 +1,7 @@
 # Benchmark reference data — provenance
 
-Reference datasets for validating VILMA against the published GIA
-community benchmark. None of this is VILMA output; it is external
+Reference datasets for validating VILMA2 against the published GIA
+community benchmark. None of this is VILMA2 output; it is external
 reference data, vendored here so the validation tests are self-contained.
 
 ## `love_M3-L70-V01/mod_M3-L70-V01`
@@ -21,7 +21,7 @@ lithosphere, three mantle layers, inviscid core), degrees 1–256.
   (analytic / semi-analytic) viscoelastic Love numbers — for an incompressible
   layered Maxwell sphere the response is a finite sum of decaying exponentials
   (here 9 modes per degree). They are the output of a normal-mode code such as
-  TABOO or ALMA (Spada's codes), not a time-domain FE code. VILMA
+  TABOO or ALMA (Spada's codes), not a time-domain FE code. VILMA2
   computes the *same physics* by a different route (per-degree FE solve for the
   elastic/fluid limits, time-domain memory-stress integration for the transient),
   so this table is an independent cross-check, and TABOO
@@ -79,7 +79,7 @@ vertical displacement `u`, geoid `n`, and uplift rate `dudt`, for the
   would be the honest measure. (Whether the 1° data was digitized from the
   published figures or taken from a table is not recorded upstream.)
 - **Degree-1 / geoid frame:** the displacement is in the CE-like gauge (h₁≈0,
-  geocenter), the geoid in the CM frame (N₁=0). VILMA reproduces both: u to
+  geocenter), the geoid in the CM frame (N₁=0). VILMA2 reproduces both: u to
   ~1% near-field, n to ~1% once the degree-1 geoid is referenced to CM (N₁=0; see
   vilma_response). The far-field (θ≳12°) forebulge in `u` is small-amplitude and
   shows larger relative differences (low-degree-truncation sensitive).
@@ -144,7 +144,7 @@ directly from the **Spada et al. (2011)** paper PDF (`doc/refs/Spada2011.pdf`).
   axisymmetric loads (cap/disc/point, Table 4), model M3-L70-V01, Heaviside
   history, load centroid θc = 25°, λc = 75°. Two contributors — **Vb**
   (Mathematica matrix-propagator, Sabadini & Vermeersen) and **Gs** (TABOO,
-  Spada) — both *normal-mode* codes; **VILMA-v1 (Vk) did not provide m for this
+  Spada) — both *normal-mode* codes; **VILMA1 (Vk) did not provide m for this
   test** (only LOD via 1+k^L), so this validates a time-domain solver the same
   cross-method way the giapy table validates rung 2. Two cases: Chandler wobble
   *included* (`incl`, Cw≠0) and *excluded* (`excl`, Cw=0). A quasi-static

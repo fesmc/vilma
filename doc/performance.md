@@ -1,4 +1,4 @@
-# VILMA — performance note
+# VILMA2 — performance note
 
 Whole-step cost, where it goes, and what it means for real runs. For the
 per-degree solver micro-optimisations (band LU, degree-grouped memory,

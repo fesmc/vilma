@@ -3,7 +3,7 @@ module vilma_remap
    !! the model's SHTns Gauss-Legendre grid, built on the fesm-utils `coords` library
    !! (in-package SCRIP-style weights, gen="coords", no CDO).
    !!
-   !! Two legs, mirroring CLIMBER-X's VILMA-v1 coupling:
+   !! Two legs, mirroring CLIMBER-X's VILMA1 coupling:
    !!   host lon-lat --(conservative)--> Gauss   [remap_to_gauss]   mass-bearing fields (ice)
    !!   Gauss --(bilinear)--> host lon-lat        [remap_to_ll]      smooth fields (rsl)
    !!

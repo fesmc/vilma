@@ -5,11 +5,11 @@ project:
     - tutorial/**
 
 website:
-  title: "VILMA v2"
+  title: "VILMA2"
   description: >-
     An open-source, time-domain spectral–finite-element solid-Earth (GIA)
     model with a self-consistent sea-level equation.
-  repo-url: https://github.com/fesmc/vilma
+  repo-url: https://github.com/fesmc/vilma2
   repo-actions: [source, issue]
   page-navigation: true
   back-to-top-navigation: true
@@ -42,7 +42,7 @@ website:
         file: references.qmd
     right:
       - icon: github
-        href: https://github.com/fesmc/vilma
+        href: https://github.com/fesmc/vilma2
         aria-label: GitHub
   sidebar:
     style: floating

@@ -44,7 +44,7 @@ assembled and factored once per degree and reused across all $m$.
 
 ## Real, orthonormal harmonics
 
-VILMA uses **fully normalized real spherical harmonics with no
+VILMA2 uses **fully normalized real spherical harmonics with no
 Condon–Shortley phase**, on a Gauss–Legendre latitude grid with a $\phi$-contiguous
 layout; spectral arrays store $m \ge 0$. This convention (`SHT_ORTHONORMAL`,
 `SHT_NO_CS_PHASE`) is pinned across the whole code so that quadrature
@@ -58,7 +58,7 @@ pseudo-spectral method — it is called many times per time step — so it is bu
 on **[SHTns](https://nschaeffer.name/?lang=en&page=shtns)** [@Schaeffer2013], a
 high-performance spherical-harmonic transform library, which in turn uses
 **[FFTW](https://www.fftw.org/)** [@FrigoJohnson2005] for the longitudinal FFTs.
-VILMA wraps SHTns in a thin Fortran module (`vilma_sht`) that exposes:
+VILMA2 wraps SHTns in a thin Fortran module (`vilma_sht`) that exposes:
 
 - forward / inverse scalar transforms (analysis and synthesis);
 - quadrature on the sphere, $\int f\,\mathrm{d}\Omega$;
@@ -82,7 +82,7 @@ evaluation are validated to $\sim 10^{-15}$ in `test_sht` and `test_field`.
 Re-implementing a fast, accurate, well-tested Legendre transform is a project in
 itself; SHTns is the de-facto standard for pseudo-spectral geodynamo/GIA work
 and is many times faster than a naive transform at the resolutions of interest
-(SH degree $\sim 170$, grid $1024\times 2048$ at VILMA-v1 resolution). The one
+(SH degree $\sim 170$, grid $1024\times 2048$ at VILMA1 resolution). The one
 non-negotiable is pinning the normalization and phase convention everywhere, so
 that Love numbers, quadrature, and benchmark comparisons all use the same
 $Y_{jm}$.
@@ -90,7 +90,7 @@ $Y_{jm}$.
 
 ## Resolution
 
-The reference VILMA-v1-scale configuration is SH degree 170 with a
+The reference VILMA1-scale configuration is SH degree 170 with a
 $1024\times 2048$ SLE grid. The benchmark cases here run at degree 32–128;
 the Love-number and disc benchmarks synthesize spatial profiles by summing the
 per-degree response against Legendre polynomials. **All spherical-harmonic

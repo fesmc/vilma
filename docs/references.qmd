@@ -18,10 +18,10 @@ The spectral–finite-element, time-domain method and its rotational extension:
   motion; Charles University benchmark, earth model M3–L70–V01).
 - @Martinec2018 — the sea-level-equation intercomparison.
 
-## VILMA-v1 physics and coupling
+## VILMA1 physics and coupling
 
-- @Albrecht2024 — coupled PISM–VILMA; documents VILMA-v1's physics.
-- @Bagge2021 — VILMA-v1 with 3D earth structure.
+- @Albrecht2024 — coupled PISM–VILMA; documents VILMA1's physics.
+- @Bagge2021 — VILMA1 with 3D earth structure.
 - @Willeit2022 — the CLIMBER-X Earth system model (the host).
 
 ## Supporting theory

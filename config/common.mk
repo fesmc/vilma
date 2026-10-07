@@ -1,4 +1,4 @@
-# Shared dependency wiring for VILMA.
+# Shared dependency wiring for VILMA2.
 #
 # Loaded by config/Makefile *after* the compiler fragment, so it may reference
 # FFLAGS_BASE, MODFLAGS, CPPFLAGS_PP, INC_NC and LIB_NC defined there.
@@ -71,16 +71,16 @@ ifeq ($(openmp),1)
 	LIB_SHTNS = -L$(SHTNSROOT)/lib -lshtns_omp
 endif
 
-# --- VILMA-v1 backend (make vilma_v1=1 VILMA_V1_ROOT=...) -------------------------------
-# OPTIONAL and OFF by default. VILMA-v1 (Martinec/Klemann; the CLIMBER-X i_geo=2
+# --- VILMA1 backend (make vilma_v1=1 VILMA_V1_ROOT=...) -------------------------------
+# OPTIONAL and OFF by default. VILMA1 (Martinec/Klemann; the CLIMBER-X i_geo=2
 # backend) is a hand-installed, precompiled library: a `vega_pism.a` archive plus
 # a directory of `.mod` files. It is absent on most machines, so it must never
-# become a dependency of VILMA.
+# become a dependency of VILMA2.
 #
 # vilma_v1=0 (the default): CPPFLAGS_VILMA_V1 / INC_VILMA_V1 / LIB_VILMA_V1 are all EMPTY, so
 #   the compile line carries no -DVILMA_V1 and no VILMA_V1_ROOT include, and the link line
 #   no archive. src/vilma_v1.f90 then compiles to a pure-Fortran stub referencing
-#   no VILMA-v1 symbol, which aborts with an actionable message if solver="v1" is
+#   no VILMA1 symbol, which aborts with an actionable message if solver="v1" is
 #   selected at runtime. The build is identical to a tree without this switch.
 # vilma_v1=1: -DVILMA_V1 activates the real wrapper; VILMA_V1_ROOT must point at an install
 #   containing include/*.mod and lib/vega_pism.a.
@@ -104,5 +104,5 @@ FFLAGS_VILMA   = $(FFLAGS_BASE) $(MODFLAGS) $(INC_NC) $(INC_FESMUTILS) $(INC_FFT
 
 # Static archives resolve left-to-right, so a library must precede the libraries
 # it depends on: SHTns before FFTW (SHTns calls FFTW), fesm-utils before netCDF.
-# LIB_VILMA_V1 is empty unless vilma_v1=1; VILMA-v1 calls netCDF, so it precedes LIB_NC.
+# LIB_VILMA_V1 is empty unless vilma_v1=1; VILMA1 calls netCDF, so it precedes LIB_NC.
 LFLAGS_VILMA   = $(LIB_FESMUTILS) $(LIB_SHTNS) $(LIB_FFTW) $(LIB_LIS) $(LIB_VILMA_V1) $(LIB_NC) $(LFLAGS_EXTRA)

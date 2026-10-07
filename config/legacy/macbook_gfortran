@@ -1,4 +1,4 @@
-### VILMA compiler fragment: macOS (Apple Silicon) + Homebrew gfortran ###
+### VILMA2 compiler fragment: macOS (Apple Silicon) + Homebrew gfortran ###
 
 # --- Compiler ----------------------------------------------------------------
 FC = gfortran

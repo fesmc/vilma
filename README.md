@@ -1,12 +1,12 @@
-# VILMA v2
+# VILMA2
 
-> **Under heavy development.** VILMA v2 is not yet ready for use in a
-> scientific production capacity. If you want to use VILMA for now, please
+> **Under heavy development.** VILMA2 is not yet ready for use in a
+> scientific production capacity. If you want to use VILMA1 for now, please
 > contact Volker Klemann at GFZ.
 
-**VILMA v2** is a state-of-the-art but simple and fast **3D solid-Earth model** — a
+**VILMA2** is a state-of-the-art but simple and fast **3D solid-Earth model** — a
 visco-elastic deformation model coupled with the sea-level equation — intended
-as an **open-source alternative to VILMA-v1** within the CLIMBER-X climate model.
+as an **open-source alternative to VILMA1** within the CLIMBER-X climate model.
 
 The method is a new implementation of the **spectral–finite-element,
 time-domain** approach of Martinec (2000): spherical harmonics horizontally,
@@ -15,19 +15,19 @@ explicitly in time, a self-consistent sea-level equation with migrating
 coastlines, and rotational feedback. It is built **3D-ready from the start**
 (laterally varying viscosity) and validated against the published GIA benchmarks.
 
-**Documentation:** <https://fesmc.github.io/vilma/> (physics,
+**Documentation:** <https://fesmc.github.io/vilma2/> (physics,
 discretization, benchmarks, install & run), rendered from the Quarto sources
 under [`docs/`](docs/); see [doc/design.md](doc/design.md) for the design
 rationale and method comparison, and
-[doc/vilma-v1-backend.md](doc/vilma-v1-backend.md) for the optional VILMA-v1 backend
-(`&vilma solver = "v1"`), which drives VILMA-v1 itself through this model's
+[doc/vilma-v1-backend.md](doc/vilma-v1-backend.md) for the optional VILMA1 backend
+(`&vilma solver = "v1"`), which drives VILMA1 itself through this model's
 driver, namelist, forcing, remap and output for a like-for-like comparison. It
 is **off by default and is not a dependency**: it needs an explicit
-`make vilma vilma_v1=1 VILMA_V1_ROOT=<install>` and a hand-installed VILMA-v1.
+`make vilma vilma_v1=1 VILMA_V1_ROOT=<install>` and a hand-installed VILMA1.
 
 ## Status
 
-VILMA v2 is under heavy development and not yet ready for scientific
+VILMA2 is under heavy development and not yet ready for scientific
 production use (see the note at the top). Implemented and validated so far: the spectral–finite-element solver
 core, viscoelastic time stepping, the self-consistent migrating-coastline
 sea-level equation, rotational feedback (polar motion), and laterally varying

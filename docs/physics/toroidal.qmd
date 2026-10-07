@@ -6,15 +6,15 @@ A surface load on a radially symmetric Earth drives only **spheroidal**
 deformation: radial and consoidal displacement, $U$ and $V$. Once viscosity
 varies laterally this is no longer true. The Maxwell relaxation then also
 drives **toroidal** flow $W$: horizontal, divergence-free motion with no
-radial component. That flow feeds back into the spheroidal field. VILMA
-carries this toroidal degree of freedom in its 3D path, as VILMA-v1 does.
+radial component. That flow feeds back into the spheroidal field. VILMA2
+carries this toroidal degree of freedom in its 3D path, as VILMA1 does.
 
 ::: {.callout-note title="Status: implemented, off by default"}
 The toroidal treatment is implemented and unit-tested (see
 [Validation](#validation)). It is switched **off by default**
 (`l_toroidal = .false.`): it makes the 3D memory advance more expensive, and
 its effect on a realistic deglaciation has not yet been quantified against
-VILMA-v1. With `l_toroidal = .false.` the model is the spheroidal-only 3D
+VILMA1. With `l_toroidal = .false.` the model is the spheroidal-only 3D
 model. Radially symmetric and laterally uniform runs are unaffected either way.
 :::
 
@@ -132,7 +132,7 @@ $$
 
 using the same Appendix-C integrals as the spheroidal block. No density,
 gravity or pressure enters. Rather than adding $W$ as a fifth interleaved
-field to the spheroidal system, VILMA gives it **its own per-degree
+field to the spheroidal system, VILMA2 gives it **its own per-degree
 operator**. That operator is symmetric and tridiagonal, and it is factored
 once per degree and reused for all orders, loads and steps, like the
 spheroidal one (see [Solver](../discretization/solver.qmd)). The spheroidal
@@ -216,7 +216,7 @@ consistency, symmetry and scaling tests:
 
 Every existing 1D and benchmark result is unchanged (bit-identical). The
 remaining steps are a cross-check of a toroidal-carrying configuration against
-VILMA-v1 through `solver = "v1"`, and a measurement of what the toroidal
+VILMA1 through `solver = "v1"`, and a measurement of what the toroidal
 coupling changes in a 3D deglaciation. Until then it stays off by default.
 
 ::: {.callout-tip title="Where this lives in the code"}

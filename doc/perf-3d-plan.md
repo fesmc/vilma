@@ -12,7 +12,7 @@ premise turned out to be **wrong**. This is the corrected record.
 - The 3-D per-step cost is **explicit sub-stepping × the memory advance**, not a slow
   single transform. Output and input-remap are negligible (<1 % each).
 - We were profiling the **wrong viscosity field** (Pan 2022). The intended default is
-  **Bagge 2021, floored at log10 η = 19.5** (= VILMA-v1's CLIMBER-X default), which is ~6×
+  **Bagge 2021, floored at log10 η = 19.5** (= VILMA1's CLIMBER-X default), which is ~6×
   cheaper and physically sane (Pan's raw min ~13.7 dex is unphysical).
 - The real wall-time killer was **`solid_earth_init` auto-tuning 8 SHTns configs (~136 s)**; fixed
   with `SHT_QUICK_INIT` (→ ~1 s), which unblocked lmax 128.
@@ -35,8 +35,8 @@ Full-step profile (`vilma_drive` PROFILE timers, 8 threads, Bagge floor 19.5, `S
 | laterally-3-D elements | 51 / 217 | 66 / 217 |
 | `read_ice` / `vilma_write_step` | 9 / 11 ms | 9 / 36 ms |
 
-≈ 8 ms/simulated-yr (lmax 64), ≈ 44 ms/yr (lmax 128). VILMA-v1's CLIMBER-X cadence is
-`n_year_geo = 10`, so ~1 sub-step per VILMA-v1 update (~0.5 s/update at lmax 128).
+≈ 8 ms/simulated-yr (lmax 64), ≈ 44 ms/yr (lmax 128). VILMA1's CLIMBER-X cadence is
+`n_year_geo = 10`, so ~1 sub-step per VILMA1 update (~0.5 s/update at lmax 128).
 
 For contrast, Pan 2022 at the same floor: `solid_earth_update` ≈ 3.9 s/step at lmax 64, `n_sub` 23,
 116/217 elements 3-D — i.e. the field choice was most of the apparent slowness.

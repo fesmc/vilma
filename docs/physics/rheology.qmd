@@ -4,7 +4,7 @@ title: "Maxwell rheology and the memory stress"
 
 The mantle is modelled as an **incompressible Maxwell** body: it responds
 elastically on short timescales and viscously on long ones, with a single
-Maxwell time $\tau_M = \eta/\mu$ per layer. VILMA integrates this
+Maxwell time $\tau_M = \eta/\mu$ per layer. VILMA2 integrates this
 constitutive law **explicitly in the time domain** — there is no normal-mode
 decomposition and no Laplace transform. This is the structural choice that
 makes laterally varying (3D) viscosity essentially free.
@@ -70,7 +70,7 @@ step.
 | `"fe"` (default) | $\boldsymbol{\tau}^{V,i} = (1-M)\,\boldsymbol{\tau}^{V,i-1} - 2\mu M\,\boldsymbol{\varepsilon}^{i}$ | 1st order, conditionally stable | equal sub-steps with $M \le$ `cfl` |
 | `"trap"` | $\boldsymbol{\tau}^{V,i} = \dfrac{(1-M/2)\,\boldsymbol{\tau}^{V,i-1} - \mu M\,(\boldsymbol{\varepsilon}^{i-1}+\boldsymbol{\varepsilon}^{i})}{1+M/2}$ | 2nd order, A-stable (Crank–Nicolson) | adaptive, step-doubling error estimate |
 
-`"fe"` is the $\omega = 1$ scheme of @Martinec2000 and matches how VILMA-v1
+`"fe"` is the $\omega = 1$ scheme of @Martinec2000 and matches how VILMA1
 marches its memory. `"trap"` is implicit in the end-of-step strain
 $\boldsymbol{\varepsilon}^{i}$, which itself depends on
 $\boldsymbol{\tau}^{V,i}$. The commit therefore iterates the step endpoint to
@@ -124,7 +124,7 @@ Three details matter in practice:
   treated as 3-D when its lateral spread of $\log_{10}\eta$ exceeds
   `visc3d_tol` (default $10^{-3}$ dex). Every other Maxwell element collapses
   to its lateral-mean rate and advances on the cheap per-degree spectral path,
-  as in VILMA-v1's 1-D/3-D layer split. A laterally uniform field therefore
+  as in VILMA1's 1-D/3-D layer split. A laterally uniform field therefore
   flags no element as 3-D and costs exactly the 1D run.
 - **The update is analysed as an increment.** The grid step is written
   $\boldsymbol{\tau}^{+} = \boldsymbol{\tau} - M(\boldsymbol{\tau} + 2\mu\boldsymbol{\varepsilon})$,

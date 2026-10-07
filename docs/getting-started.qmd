@@ -3,17 +3,17 @@ title: "Installation and running"
 ---
 
 ::: {.callout-warning title="Under heavy development"}
-VILMA v2 is not yet ready for use in a scientific production capacity. If you
-want to use VILMA for now, please contact Volker Klemann at GFZ.
+VILMA2 is not yet ready for use in a scientific production capacity. If you
+want to use VILMA1 for now, please contact Volker Klemann at GFZ.
 :::
 
-This page covers getting VILMA v2 built and running a forced simulation. The
+This page covers getting VILMA2 built and running a forced simulation. The
 build is driven by **configme** (one source of machine/compiler truth) and runs
 are staged by **runme** (single simulations and ensembles, locally or on SLURM).
 
 ## Dependencies
 
-VILMA needs only a small, well-established stack:
+VILMA2 needs only a small, well-established stack:
 
 | Dependency | Provides | Source |
 |---|---|---|
@@ -78,11 +78,11 @@ A run configuration has two namelist groups:
   never reads it.
 
 The complete, documented `&vilma` defaults are in
-[`input/vilma_defaults.nml`](https://github.com/fesmc/vilma/blob/main/input/vilma_defaults.nml)
+[`input/vilma_defaults.nml`](https://github.com/fesmc/vilma2/blob/main/input/vilma_defaults.nml)
 and are loaded automatically. A run configuration such as
-[`vilma.nml`](https://github.com/fesmc/vilma/blob/main/vilma.nml) (the
+[`vilma.nml`](https://github.com/fesmc/vilma2/blob/main/vilma.nml) (the
 default) or
-[`examples/deglac_lgm.nml`](https://github.com/fesmc/vilma/blob/main/examples/deglac_lgm.nml)
+[`examples/deglac_lgm.nml`](https://github.com/fesmc/vilma2/blob/main/examples/deglac_lgm.nml)
 carries the full `&ctl` group plus only the `&vilma` parameters it overrides
 (the yelmo `defaults_file` convention):
 
@@ -119,7 +119,7 @@ A few conventions worth knowing:
   fluid limit; `rotation_k_s` (> 0) prescribes it and `rotation_c_minus_a` sets
   C − A (default 2.63e35 kg m²).
 - **Backend** is chosen by `solver`: `"v2"` (this model, default) or `"v1"`,
-  the VILMA-v1 library behind the same driver, forcing and output for
+  the VILMA1 library behind the same driver, forcing and output for
   like-for-like comparison (requires a build with `vilma_v1=1`).
 
 ## The drivers
@@ -132,7 +132,7 @@ A few conventions worth knowing:
 
 A complete worked configuration — an LGM → present-day deglaciation forced by
 the Tarasov ice/bed reconstruction — is in
-[`examples/deglac_lgm.nml`](https://github.com/fesmc/vilma/blob/main/examples/deglac_lgm.nml).
+[`examples/deglac_lgm.nml`](https://github.com/fesmc/vilma2/blob/main/examples/deglac_lgm.nml).
 
 ## Running with runme
 

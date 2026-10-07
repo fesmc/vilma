@@ -1,6 +1,6 @@
 # Machine configuration: macbook (intended compiler: gfortran).
 #
-# PROJECT-TIER fragment: VILMA's own copy, which takes precedence over
+# PROJECT-TIER fragment: VILMA2's own copy, which takes precedence over
 # configme's shipped machines/macbook.mk (orchestrator > user > shipped). It
 # reproduces the shipped fragment and additionally pins the production
 # optimization flags, which configme's generic compilers/gfortran.mk cannot

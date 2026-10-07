@@ -11,7 +11,7 @@ cases A and C2/D3/E2/F1 (SBK reference curves). **Tests:**
 
 This is the capstone benchmark: the full **self-consistent, migrating-coastline
 sea-level equation** driven by the viscoelastic response — the same benchmark
-VILMA-v1 itself passed. It exercises the ocean function, mass conservation,
+VILMA1 itself passed. It exercises the ocean function, mass conservation,
 coastline migration, grounded-ice flotation, and the sub-grid sloping coast all
 together.
 
@@ -49,7 +49,7 @@ paper (SBK letter = paper letter + 1):
 
 The simplest case: a spherical cap, Heaviside loading, 10 kyr relaxation, **no
 ocean**, with degrees $n=0,1$ dropped — a pure viscoelastic cap response.
-VILMA matches Martinec (2018) fig. 10 to **0.52 % (uplift) / 0.69 %
+VILMA2 matches Martinec (2018) fig. 10 to **0.52 % (uplift) / 0.69 %
 (horizontal) / 1.94 % (geoid)** (peak-normalized). This is the **first
 horizontal-displacement** benchmark and confirms the spheroidal $V$ field
 (`test_benchmark_martinec`).
@@ -104,7 +104,7 @@ matching the reference's choice removes the discrepancy.
 ## Figures
 
 *Figures to be added: per-case profiles (figs. 10–13) of uplift, horizontal
-displacement, geoid/potential, sea-surface, and the SLE result, VILMA vs.
+displacement, geoid/potential, sea-surface, and the SLE result, VILMA2 vs.
 the SBK reference; the eustatic-sea-level time series.*
 
 <!--

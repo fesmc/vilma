@@ -1,7 +1,7 @@
 &vilma
     ! ====================================================================
     ! The SAME deglaciation run as examples/deglac_lgm.nml, but driven by the
-    ! optional VILMA-v1 backend instead of the native solver — an v2-vs-v1 comparison
+    ! optional VILMA1 backend instead of the native solver — an v2-vs-v1 comparison
     ! behind one driver, one forcing, one reference, one output layout.
     !
     !   make clean
@@ -9,30 +9,30 @@
     !   bin/vilma.x examples/deglac_vilma_v1.nml
     !
     ! The default build (make vilma) aborts at init with an actionable
-    ! message when it sees solver="v1" — VILMA-v1 is NOT a dependency.
+    ! message when it sees solver="v1" — VILMA1 is NOT a dependency.
     ! Read doc/vilma-v1-backend.md before running this: there are real constraints
     ! (netCDF-Fortran ABI, i_eq, no spin-up, no restart) and documented gaps.
     ! ====================================================================
     solver       = "v1"
 
-    lmax         = 32          ! the COUPLING + OUTPUT grid, not VILMA-v1's resolution.
+    lmax         = 32          ! the COUPLING + OUTPUT grid, not VILMA1's resolution.
                                ! Keep it equal to the v2 run being compared against.
 
-    ! VILMA-v1 has its own earth structure, sea-level equation and time stepping, so
+    ! VILMA1 has its own earth structure, sea-level equation and time stepping, so
     ! `earth`, `scheme`, `earth_response`, the sle_* / dt_* knobs and `rotation`
     ! are all IGNORED here. Only the grid above, l_visc_3d and the vilma_v1_* block
     ! below have any effect.
-    l_visc_3d    = .false.     ! .true. => VILMA-v1 reads vilma_v1_visc_3d_file (vg%l_mod=1)
+    l_visc_3d    = .false.     ! .true. => VILMA1 reads vilma_v1_visc_3d_file (vg%l_mod=1)
 
-    ! No spin-up: solid_earth_spinup has no VILMA-v1 analogue and is refused. VILMA-v1
+    ! No spin-up: solid_earth_spinup has no VILMA1 analogue and is refused. VILMA1
     ! always starts from the reference state with zero viscous memory.
     equil_time_max = 0.0
     pre_spinup_1d  = .false.
 
-    ! --- VILMA-v1 backend ------------------------------------------------------
+    ! --- VILMA1 backend ------------------------------------------------------
     ! jmax and grid_file must describe the same grid: nlon = smallest power of 2
     ! greater than 3*jmax, nlat = nlon/2 (jmax=170 -> 512 x 256). Checked at init.
-    ! Keep vilma_v1_out_dir SHORT: VILMA-v1 stores file names in 120 characters.
+    ! Keep vilma_v1_out_dir SHORT: VILMA1 stores file names in 120 characters.
     vilma_v1_jmax         = 170
     vilma_v1_input_dir    = "~/models/climber-x/input/vilma"
     vilma_v1_out_dir      = "runs/deglac_vilma_v1/vilma"
@@ -45,7 +45,7 @@
     ! ====================================================================
     ! Identical forcing and window to examples/deglac_lgm.nml.
     !
-    ! i_eq: VILMA-v1 REQUIRES its load history to start from the reference state
+    ! i_eq: VILMA1 REQUIRES its load history to start from the reference state
     ! (it aborts if the first record does not vanish against the reference ice),
     ! so with i_eq=1 — a present-day reference and an LGM start — it absorbs the
     ! whole LGM-vs-present anomaly as a jump in the first interval, and prints a
@@ -78,7 +78,7 @@
     time_init    = -26000.0
     time_end     = 0.0
 
-    ! A VILMA restart carries the native solver's memory, which VILMA-v1 has
+    ! A VILMA2 restart carries the native solver's memory, which VILMA1 has
     ! no counterpart for; restart_in_file is refused with solver="v1".
     restart_in_file = ""
 /

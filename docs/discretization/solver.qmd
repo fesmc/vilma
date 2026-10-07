@@ -3,7 +3,7 @@ title: "The banded direct solver and performance"
 ---
 
 The per-degree saddle-point system is small, banded, and reused unchanged across
-all orders $m$, all loads, and every time step. VILMA therefore solves it
+all orders $m$, all loads, and every time step. VILMA2 therefore solves it
 with a **dependency-free, re-entrant, pivoted banded LU** — factor once, solve
 many times — which is both faster and structurally simpler than the iterative
 solver used in early versions.
@@ -69,7 +69,7 @@ Net effect on `begin_step`:
 The full sea-level benchmark ($\ell_{\max}=128$, $\sim 750$ steps) thus runs in
 **minutes rather than hours**, which is what makes the
 [Martinec (2018) SLE cases](../benchmarks/sea-level.qmd) feasible as routine
-validation. At VILMA-v1 resolution (SH degree 170) the same machinery applies.
+validation. At VILMA1 resolution (SH degree 170) the same machinery applies.
 
 ::: {.callout-tip title="Where this lives in the code"}
 `vilma_band` (pivoted banded LU + equilibration), `vilma_radial_fe` (assembly,

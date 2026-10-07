@@ -1,5 +1,5 @@
 module vilma_precision
-   !! Working precision for VILMA.
+   !! Working precision for VILMA2.
    !!
    !! `wp` is double precision and is deliberately kept identical to the C
    !! `double` used by the SHTns and FFTW interfaces, so spectral/spatial arrays

@@ -1,4 +1,4 @@
-# Source lists, compilation rules and targets for VILMA.
+# Source lists, compilation rules and targets for VILMA2.
 # Included by config/Makefile after the flag sets are assembled.
 
 # --- Library object list (in module-dependency order) ------------------------
@@ -52,8 +52,8 @@ $(objdir)/vilma_timestep.o:         $(objdir)/vilma_response.o $(objdir)/vilma_s
 $(objdir)/vilma_rotation.o:         $(objdir)/vilma_sht.o $(objdir)/vilma_constants.o \
                                     $(objdir)/vilma_earth_structure.o $(objdir)/vilma_radial_fe.o \
                                     $(objdir)/vilma_viscoelastic.o
-# Optional VILMA-v1 backend. Compiled ALWAYS; with vilma_v1=0 (the default) -DVILMA_V1 is
-# absent and this is a pure-Fortran stub that references no VILMA-v1 symbol.
+# Optional VILMA1 backend. Compiled ALWAYS; with vilma_v1=0 (the default) -DVILMA_V1 is
+# absent and this is a pure-Fortran stub that references no VILMA1 symbol.
 $(objdir)/vilma_v1.o:               $(objdir)/vilma_precision.o $(objdir)/vilma_constants.o \
                                     $(objdir)/vilma_params.o $(objdir)/vilma_sht.o
 $(objdir)/vilma_coupling.o:         $(objdir)/vilma_v1.o \
@@ -77,7 +77,7 @@ $(objdir)/vilma.o:                  $(objdir)/vilma_coupling.o $(objdir)/vilma_i
 
 # --- Pattern rule ------------------------------------------------------------
 # Every object depends on FESMUTILS_LIB (libfesmutils.a): fesm-utils modules
-# (coords/ncio/nml) are used across VILMA, and a rebuilt fesm-utils with a
+# (coords/ncio/nml) are used across VILMA2, and a rebuilt fesm-utils with a
 # changed module interface must force a recompile against the new .mod rather than
 # silently relinking a stale object (ABI mismatch -> segfault, the i_geo=3 coords
 # crash). Blanket dep keeps this correct without tracking which objects use which
@@ -371,7 +371,7 @@ TESTS = test_params test_drive test_band test_sht test_earth test_mesh test_inte
 
 check: $(TESTS)
 	@echo ""
-	@echo "=== Running VILMA test suite ==="
+	@echo "=== Running VILMA2 test suite ==="
 	@for t in $(TESTS); do \
 		echo "--- $$t ---"; \
 		$(bindir)/$$t.x || exit 1; \
@@ -395,7 +395,7 @@ BIGSTACK = ulimit -s unlimited 2>/dev/null || ulimit -s 262144 2>/dev/null || tr
 
 check-slow: $(SLOW)
 	@echo ""
-	@echo "=== Running VILMA slow benchmarks ==="
+	@echo "=== Running VILMA2 slow benchmarks ==="
 	@for c in C2 D3 E2 F1; do \
 		echo "--- test_benchmark_sle $$c ---"; \
 		( $(BIGSTACK); OMP_STACKSIZE=$${OMP_STACKSIZE:-256M} \
@@ -415,7 +415,7 @@ check-slow: $(SLOW)
 
 usage:
 	@echo ""
-	@echo "    * VILMA build *"
+	@echo "    * VILMA2 build *"
 	@echo ""
 	@echo " make vilma-static : build libvilma.a"
 	@echo " make vilma        : build the standalone driver (bin/vilma.x)"
@@ -427,14 +427,14 @@ usage:
 	@echo ""
 	@echo "   switches:  debug=0|1|2   openmp=0|1   vilma_v1=0|1"
 	@echo ""
-	@echo "   vilma_v1=1 additionally links the optional VILMA-v1 backend (solver=\"v1\"):"
+	@echo "   vilma_v1=1 additionally links the optional VILMA1 backend (solver=\"v1\"):"
 	@echo "     make vilma vilma_v1=1 VILMA_V1_ROOT=/path/to/vilma1"
 	@echo "   It is OFF by default and is not a dependency; see doc/vilma-v1-backend.md."
 	@echo ""
 
 showconfig:
 	@echo "----------------------"
-	@echo "VILMA build configuration"
+	@echo "VILMA2 build configuration"
 	@echo "----------------------"
 	@echo "compiler  : $(FC)"
 	@echo "host      : $(shell hostname)"

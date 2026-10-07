@@ -112,7 +112,7 @@ module vilma_response
       real(wp), allocatable :: Mk3(:,:,:)               !! (nphi,nlat,ne) M=μΔt/η_eff
       real(wp), allocatable :: MkPerDt3(:,:,:)          !! (nphi,nlat,ne) μ/η_eff
       type(tensor_sh) :: tsh                            !! dyadic tensor-SH transformer
-      ! VILMA-v1-style 1-D/3-D layer split (mod_visc3d k1p/k2p). An element is treated as
+      ! VILMA1-style 1-D/3-D layer split (mod_visc3d k1p/k2p). An element is treated as
       ! genuinely "3-D" — and pays the pseudo-spectral tensor-SH advance — only when its
       ! lateral log10(η) spread exceeds visc3d_tol; otherwise it collapses to a scalar
       ! effective rate (lateral mean) and advances on the cheap degree-diagonal spectral
@@ -483,7 +483,7 @@ contains
       !        F(a)=0 came out of the projection and ngain(1) is zero as a RESULT,
       !        not an override — and the displacement carries geocenter motion.
       !
-      ! VILMA-v1 runs in CM and reports the term in vega_deg1.dat; the F−V residual
+      ! VILMA1 runs in CM and reports the term in vega_deg1.dat; the F−V residual
       ! on the disc benchmark is 98–99.7 % degree 1 with "cf". See
       ! paper-fastearth3d-experiments notes/vilma-comparison.md §11.
       if (lmax >= 1 .and. .not. self%deg1_cm) self%ngain(1) = 0.0_wp
@@ -999,7 +999,7 @@ contains
       !! Elastic/fluid elements (MkPerDt = 0) stay memory-free regardless — the
       !! lithosphere remains exactly elastic.
       !!
-      !! 1-D/3-D split (VILMA-v1 mod_visc3d): an element is flagged genuinely 3-D only
+      !! 1-D/3-D split (VILMA1 mod_visc3d): an element is flagged genuinely 3-D only
       !! when its lateral log10(η) spread exceeds visc3d_tol; that subset (e3d) pays
       !! the pseudo-spectral tensor-SH advance. Every other Maxwell element collapses
       !! to a scalar effective rate (its lateral MEAN) and advances on the cheap

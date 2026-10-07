@@ -1,4 +1,4 @@
-# VILMA — performance assessment & roadmap
+# VILMA2 — performance assessment & roadmap
 
 A whole-model performance review aimed at **real transient runs** (a full glacial
 cycle: thousands of time steps with a migrating coastline and a laterally varying

@@ -1,18 +1,18 @@
 ---
-title: "VILMA v2"
+title: "VILMA2"
 subtitle: "A fast, open-source, time-domain spectral–finite-element solid-Earth model"
 toc: false
 ---
 
 ::: {.callout-warning title="Under heavy development"}
-VILMA v2 is not yet ready for use in a scientific production capacity. If you
-want to use VILMA for now, please contact Volker Klemann at GFZ.
+VILMA2 is not yet ready for use in a scientific production capacity. If you
+want to use VILMA1 for now, please contact Volker Klemann at GFZ.
 :::
 
-**VILMA v2** is a fast, open-source 3D solid-Earth model: a
+**VILMA2** is a fast, open-source 3D solid-Earth model: a
 self-gravitating, incompressible, Maxwell-viscoelastic sphere coupled to a
 self-consistent **sea-level equation** with migrating coastlines. It is
-designed as an open-source alternative to VILMA-v1 inside the
+designed as an open-source alternative to VILMA1 inside the
 [CLIMBER-X](https://doi.org/10.5194/gmd-15-5905-2022) Earth system model
 [@Willeit2022], and more generally as a reusable glacial isostatic adjustment
 (GIA) engine for ice-sheet and sea-level work.
@@ -39,7 +39,7 @@ paths are therefore the same solver**.
 | Method family | Examples | 3D viscosity | Speed | Fit for purpose |
 |---|---|:---:|:---:|---|
 | Normal-mode + Love numbers + SLE | SELEN, TABOO, ALMA3 | no (1D only) | fast (1D) | dead end for 3D |
-| **Time-domain spectral–FE** | **VILMA-v1** [@Martinec2000] | **yes** | **fast** | **chosen** |
+| **Time-domain spectral–FE** | **VILMA1** [@Martinec2000] | **yes** | **fast** | **chosen** |
 | Full 3D FE/FV | CitcomSVE, ASPECT, Elmer | yes | slow, heavy | too complex |
 
 ## What is in these docs
@@ -61,7 +61,7 @@ paths are therefore the same solver**.
 
 ## Status
 
-VILMA v2 is under heavy development and not yet ready for scientific
+VILMA2 is under heavy development and not yet ready for scientific
 production use. The core implemented so far includes the spectral–finite-element
 solver, the viscoelastic time stepping and response operator, the
 self-consistent migrating-coastline sea-level equation, rotational feedback

@@ -4,7 +4,7 @@ title: "The sea-level equation"
 
 Surface loading and sea level are coupled: ice and ocean water deform and
 re-gravitate the solid Earth, which moves the geoid and the solid surface, which
-redistributes the ocean water, which changes the load. VILMA solves this
+redistributes the ocean water, which changes the load. VILMA2 solves this
 self-consistently with the **migrating-coastline sea-level equation (SLE)** in
 the pseudo-spectral form of @KMM2005, driven by the viscoelastic response
 operator.
@@ -115,13 +115,13 @@ by adding a multiple of the null mode. `deg1_frame` selects the frame:
 
 | `deg1_frame` | Displacement | Geoid | Use |
 |---|---|---|---|
-| `"cm"` (default) | CM frame: the solid Earth translates (geocenter motion) | CM ($F_1(a) = 0$, i.e. $k_1=-1$) | real-Earth runs; as VILMA-v1 |
+| `"cm"` (default) | CM frame: the solid Earth translates (geocenter motion) | CM ($F_1(a) = 0$, i.e. $k_1=-1$) | real-Earth runs; as VILMA1 |
 | `"cf"` | solver gauge, no net translation | CM ($N_1 = 0$) | Spada disc benchmark |
 
 In `"cm"` the CM condition is imposed once, on the solved state, so
 displacement and geoid refer to the same frame and the relative sea level
 carries the degree-1 fingerprint of geocenter motion [@Blewitt2003]. This
-reduces the disc residual against VILMA-v1 about fivefold. `"cf"` is the
+reduces the disc residual against VILMA1 about fivefold. `"cf"` is the
 *mixed* convention of the Spada (2011) disc benchmark, displacement in a
 CE-like gauge ($h_1\approx 0$) and geoid in CM ($N_1 = 0$), under which
 `rsl` has no degree-1 part. Degrees $\ge 2$ are identical in both frames. See

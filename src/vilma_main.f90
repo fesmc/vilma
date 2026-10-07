@@ -1,5 +1,5 @@
 program vilma_main
-   !! Standalone VILMA driver.
+   !! Standalone VILMA2 driver.
    !!
    !!   ./bin/vilma.x [run-config.nml]      (default: vilma.nml)
    !!

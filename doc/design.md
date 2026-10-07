@@ -1,4 +1,4 @@
-# VILMA — design
+# VILMA2 — design
 
 This document records the design decisions, the method comparison that led to
 them, the validation plan, and the implementation pitfalls the GIA literature
@@ -6,7 +6,7 @@ flags. It is the reference for filling in the module stubs.
 
 ## 1. Goal and constraints
 
-Replace **VILMA-v1** (the closed-source solid-Earth model coupled to CLIMBER-X)
+Replace **VILMA1** (the closed-source solid-Earth model coupled to CLIMBER-X)
 with an open-source Fortran model that is:
 
 - **state of the art** — full sea-level equation, rotational feedback, 3D
@@ -15,7 +15,7 @@ with an open-source Fortran model that is:
   infrastructure;
 - **3D-ready from the start**, validated first in 1D.
 
-We reproduce **VILMA-v1's physics** (confirmed from Albrecht, Bagge & Klemann 2024,
+We reproduce **VILMA1's physics** (confirmed from Albrecht, Bagge & Klemann 2024,
 *The Cryosphere* 18:4233, and Bagge et al. 2021): an **incompressible,
 self-gravitating, Maxwell** viscoelastic sphere, solved by the
 **spectral–finite-element, time-domain** method of **Martinec (2000)**, *GJI*
@@ -28,7 +28,7 @@ from the published literature.
 | Family | Examples | 3D viscosity | Speed | Fit |
 |---|---|---|---|---|
 | Normal-mode + Love numbers + SLE | SELEN, TABOO, ALMA3 | no (1D only) | fast (1D) | dead end for a 3D model |
-| **Time-domain spectral-FE** | **VILMA-v1** (Martinec 2000) | **yes** | **fast** | **chosen** |
+| **Time-domain spectral-FE** | **VILMA1** (Martinec 2000) | **yes** | **fast** | **chosen** |
 | Full 3D FE/FV | CitcomSVE, ASPECT, Elmer | yes | slow, heavy | too complex |
 
 The decisive structural fact: with the **explicit** Maxwell time scheme, the
@@ -75,7 +75,7 @@ phase, Gauss grid, phi-contiguous layout; spectral arrays hold `m >= 0`.
 - Host (CLIMBER-X) maps between its grid and the model's lat-lon Gauss grid with
   conservative (in) / bilinear (out) SCRIP weights; **all SH transforms stay
   inside this model**.
-- Reference VILMA-v1 resolution: SH degree 170; SLE grid 1024×2048; radial FE 5 km
+- Reference VILMA1 resolution: SH degree 170; SLE grid 1024×2048; radial FE 5 km
   (→420 km) / 10 km (→670 km) / 40–60 km (→CMB); explicit Δt 2.5 yr; coupling
   cadence `n_year_geo` (default 10 yr); viscosity floor ~1e19 Pa·s.
 
@@ -87,7 +87,7 @@ phase, Gauss grid, phi-contiguous layout; spectral arrays hold `m >= 0`.
    **ALMA3**.
 3. **Deformation / geoid** for a disc load vs Spada (2011) tests 1/2–2/2.
 4. **Sea-level equation** vs **Martinec et al. (2018)**, *GJI* 215:389, cases
-   A→E (the migrating-coastline benchmark VILMA-v1 itself passed).
+   A→E (the migrating-coastline benchmark VILMA1 itself passed).
 5. **Rotation** vs Spada (2011) test 3/2 (polar motion) — **DONE** (`test_rotation`,
    `test_rotation_sle`): degree-2 Liouville polar motion `|m(t)|` matches Table 14
    (Cw=0) to <1% for cap + disc at t=0–20 kyr; the SLE-coupled feedback (5c) matches
@@ -129,7 +129,7 @@ fesm-utils' `build.py` as a first-class component (serial + OpenMP variants).
 
 - Martinec (2000), *GJI* 142:117 — the spectral-FE method.
 - Albrecht, Bagge & Klemann (2024), *The Cryosphere* 18:4233 — PISM–VILMA,
-  confirms VILMA-v1 physics.
+  confirms VILMA1 physics.
 - Martinec & Hagedoorn (2014), *GJI* 199:1823 — time-domain rotational feedback.
 - Kendall, Mitrovica & Milne (2005), *GJI* 161:679 — SLE with moving shorelines.
 - Spada et al. (2011), *GJI* 185:106 — GIA benchmark.
@@ -284,7 +284,7 @@ displacement `u`.
    a rotational-signature plot) with no vendored quantitative reference — subsumed by
    our Love + Martinec + Spada suite, so nothing added.
 4. **Performance — DONE.** `begin_step` does 2 real solves per (l,m) per step
-   (~O(nlm) solves), the cost driver at VILMA-v1 resolution. Four changes, all exact
+   (~O(nlm) solves), the cost driver at VILMA1 resolution. Four changes, all exact
    (results unchanged) except the threshold-controlled skip:
    - **Banded LU** (`vilma_band`) replaces the iterative solver (LIS GMRES+ILU) on the
      per-degree solve, and **LIS is removed entirely**. The operator is banded
@@ -341,7 +341,7 @@ Rung 5 (rotation) is DONE — 5a/5b/5c (§11).
 ## 11. Rotational feedback / TPW (rung 5) — working notes
 
 **Formulation (Spada et al. 2011 §2.1.1; time-domain à la Martinec & Hagedoorn 2014,
-i.e. VILMA-v1).** Equatorial polar motion `m = m₁ + i m₂` from the GIA (quasi-static)
+i.e. VILMA1).** Equatorial polar motion `m = m₁ + i m₂` from the GIA (quasi-static)
 Liouville equation with the Chandler wobble neglected (eq. 7, justified since the
 Chandler period ≪ GIA timescales):
 
@@ -615,7 +615,7 @@ var/axis names) to `&vilma` and load it in `solid_earth_init`. Target two fields
     512×256 lon-lat maps cleanly onto our lmax-128 Gauss grid (512×258).
 
 **(e) Viscosity-uncertainty sampling — `f_visc_sd`, with a RELATIVE sd.** Mirror the
-CLIMBER-X VILMA-v1 scheme (`src/geo/vilma.F90`): perturb in log10 space,
+CLIMBER-X VILMA1 scheme (`src/geo/vilma.F90`): perturb in log10 space,
 `log10 η → log10 η + f_visc_sd·σ`, clamped to `[visc_log10_min, visc_log10_max]`.
 `f_visc_sd` is in units of standard deviation (0 = mean field, +1 = +1σ). CLIMBER-X
 uses a CONSTANT `sigma_log10_visc` (default 0.5 dex) applied uniformly — the user's

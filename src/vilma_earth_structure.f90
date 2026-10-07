@@ -9,7 +9,7 @@ module vilma_earth_structure
    !!
    !! 3D-ready (project goal): `visc_3d`, when allocated, carries absolute
    !! log10-viscosity on the Gauss-Legendre spatial grid per radial node — how
-   !! VILMA-v1 injects lateral heterogeneity (Albrecht et al. 2024). 1D runs leave it
+   !! VILMA1 injects lateral heterogeneity (Albrecht et al. 2024). 1D runs leave it
    !! unallocated; the same solver path reduces to the spherically symmetric case.
    use vilma_precision, only: wp
    use vilma_constants, only: pi, grav_G
@@ -87,7 +87,7 @@ contains
       !! instead the r^2-weighted (mass-consistent) shell average of the
       !! incompressible-PREM profile over each layer (prem_shell_avg), so the rho/mu
       !! arrays are ignored; viscosity and rheology still come from the eta/rheology
-      !! arrays (PREM defines no viscosity — this mirrors VILMA-v1, where PREM supplies
+      !! arrays (PREM defines no viscosity — this mirrors VILMA1, where PREM supplies
       !! the elastic+density structure and a separate profile/3-D field supplies η).
       !! Fluid layers keep mu = 0.
       type(vilma_param_class), intent(in) :: p

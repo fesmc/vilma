@@ -10,7 +10,7 @@ module vilma_timestep
    !!  • EXPLICIT (forward-Euler, the default): the 1st-order memory has no embedded
    !!    error signal, so Δt is set a priori by the Maxwell STABILITY ceiling
    !!    Δt ≤ cfl/max(μ/η) and the interval is divided into equal sub-steps (this is
-   !!    how VILMA-v1 marches its explicit memory). A cheap reactive guard rolls a sub-step
+   !!    how VILMA1 marches its explicit memory). A cheap reactive guard rolls a sub-step
    !!    back (resp%save_state/restore_state) and halves it if the memory ∞-norm goes
    !!    non-finite or grows past guard_growth× — a safety net for a stiffer-than-
    !!    estimated structure that normally never fires.
@@ -138,7 +138,7 @@ contains
       !     with the same X gives different rsl/C.
       !   * the two backends differ at t0. vilma_drive seeds with dt=0 and
       !     solid_earth_init leaves h_ice = h_ice_eq, so the native seed reports
-      !     the REFERENCE coastline while the VILMA-v1 path (which sets h_ice before
+      !     the REFERENCE coastline while the VILMA1 path (which sets h_ice before
       !     its own diagnostics) reports the LGM one. They differ over every cell
       !     where LGM grounded ice sits on sub-sea-level bed -- Hudson Bay, the
       !     Barents shelf, West Antarctica -- in both C_ocean and the t0 bsl.
@@ -172,7 +172,7 @@ contains
          ! scale is the running max of the accepted memory norm, NOT a fixed floor —
          ! otherwise the legitimate ramp-up of memory from the relaxed (τ≈0) start, where
          ! the instantaneous norm is tiny, reads as runaway growth and trips false alarms.
-         ! VILMA-v1 advances its explicit memory the same way (small fixed Δt).
+         ! VILMA1 advances its explicit memory the same way (small fixed Δt).
          np = sht%nphi;  nl = sht%nlat
          allocate(rsl_n(np,nl), ice_now(np,nl), dice_now(np,nl))
          rate = response_max_rate(resp)

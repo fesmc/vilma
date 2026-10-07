@@ -15,7 +15,7 @@ The benchmark follows @Spada2011 and @Martinec2018 but adds a
 **low-viscosity column** under or near an ice load. It isolates the effect of
 lateral viscosity on vertical and horizontal displacement, on the gravitational
 potential, and on geocentre motion. The note defines compressible and
-incompressible variants; VILMA is incompressible, so only **A-i, B-i and C-i**
+incompressible variants; VILMA2 is incompressible, so only **A-i, B-i and C-i**
 are run.
 
 ## Setup

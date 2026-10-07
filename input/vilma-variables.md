@@ -1,6 +1,6 @@
 # vilma restart / output variables
 
-Variable-io table (yelmo convention) for VILMA netCDF I/O, used by
+Variable-io table (yelmo convention) for VILMA2 netCDF I/O, used by
 `vilma_io` for both restart files and diagnostic `write_step` output. Each row gives
 the netCDF variable name, its dimensions, units, and a long_name. The time axis
 (unlimited) lets several snapshots live in one file.

@@ -2,7 +2,7 @@
 title: "Benchmarks"
 ---
 
-VILMA is validated against the **published GIA community benchmarks** — the
+VILMA2 is validated against the **published GIA community benchmarks** — the
 Charles University / Spada et al. (2011) intercomparison [@Spada2011] and the
 sea-level-equation intercomparison of Martinec et al. (2018) [@Martinec2018].
 Validation proceeds along a **ladder**: each rung is an independent benchmark
@@ -11,7 +11,7 @@ just added.
 
 The reference datasets are vendored in the repository under
 `data/benchmarks/` with full provenance and licensing in
-`data/benchmarks/PROVENANCE.md`. None of it is VILMA output; it is external
+`data/benchmarks/PROVENANCE.md`. None of it is VILMA2 output; it is external
 reference data, so the validation tests are self-contained.
 
 ## Summary results
@@ -42,7 +42,7 @@ reference; see each page for the full breakdown.
 - **Rung 4** turns on the full *self-consistent sea-level equation* — ocean
   function, mass conservation, coastline migration, flotation, and the sub-grid
   sloping coast — against the dedicated SLE intercomparison. This is the
-  benchmark VILMA-v1 itself passed.
+  benchmark VILMA1 itself passed.
 - **Rung 5** (rotation) is implemented and coupled into the SLE, with the
   Liouville polar-motion solve checked against Spada test 3/2. It is on by
   default for real-Earth runs (off for the non-rotating benchmarks).

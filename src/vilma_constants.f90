@@ -1,5 +1,5 @@
 module vilma_constants
-   !! Physical and reference constants for VILMA.
+   !! Physical and reference constants for VILMA2.
    !!
    !! Values follow the GIA-community conventions used by the Spada et al. (2011)
    !! and Martinec et al. (2018) benchmarks, so that validation runs can be

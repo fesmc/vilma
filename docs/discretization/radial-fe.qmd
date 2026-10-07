@@ -3,7 +3,7 @@ title: "Radial finite elements and the per-degree operator"
 ---
 
 After the [spectral reduction](spectral.qmd), each spherical-harmonic degree $j$
-is an independent 1D radial boundary-value problem. VILMA discretizes it
+is an independent 1D radial boundary-value problem. VILMA2 discretizes it
 with **finite elements in radius**, assembling the symmetric saddle-point
 operator that is the Hessian of the energy functional.
 

@@ -1,5 +1,5 @@
 module vilma
-   !! VILMA umbrella module — single `use vilma` entry point that
+   !! VILMA2 umbrella module — single `use vilma` entry point that
    !! re-exports the public API of every component (including the parameter record
    !! vilma_param_class / vilma_par_load and the standalone driver vilma_run). Host
    !! models and tests should depend on this rather than the individual vilma_* modules.

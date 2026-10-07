@@ -1,26 +1,26 @@
 module vilma_v1
-   !! OPTIONAL VILMA-v1 backend for the vilma_coupling API (&vilma solver = "v1").
+   !! OPTIONAL VILMA1 backend for the vilma_coupling API (&vilma solver = "v1").
    !!
-   !! VILMA-v1 (Martinec/Klemann; the CLIMBER-X i_geo=2 solid-earth backend) is swapped
+   !! VILMA1 (Martinec/Klemann; the CLIMBER-X i_geo=2 solid-earth backend) is swapped
    !! in behind the SAME driver, namelist, forcing, remap and output as the native
-   !! VILMA solver, so an v2-vs-v1 comparison differs only in the solver. The
+   !! VILMA2 solver, so an v2-vs-v1 comparison differs only in the solver. The
    !! contract is the one vilma_coupling already states: ice thickness in, relative sea
    !! level out. This module is the direct analogue of CLIMBER-X's src/geo/vilma.F90,
-   !! ported to drive from the VILMA Gauss grid instead of the CLIMBER-X geo
+   !! ported to drive from the VILMA2 Gauss grid instead of the CLIMBER-X geo
    !! grid; read the two side by side.
    !!
    !! ===========================================================================
-   !! VILMA-v1 IS NOT A DEPENDENCY OF VILMA.
+   !! VILMA1 IS NOT A DEPENDENCY OF VILMA2.
    !! ===========================================================================
    !! It is a hand-installed, precompiled library (its own .mod files under
    !! include, plus lib/vega_pism.a) that is absent on most machines. Do not spell
    !! that include glob out here: the sources are compiled through the C
    !! preprocessor (-cpp for gfortran, -fpp for Intel), which reads the slash-star
    !! as the start of a C comment and swallows the rest of the file.
-   !! Every reference to VILMA-v1 in this file sits
+   !! Every reference to VILMA1 in this file sits
    !! inside `#ifdef VILMA_V1`, which only `make vilma vilma_v1=1 VILMA_V1_ROOT=<install>`
    !! defines. In the DEFAULT build this file compiles to a pure-Fortran stub that
-   !! names no VILMA-v1 symbol and needs no VILMA-v1 include path; selecting
+   !! names no VILMA1 symbol and needs no VILMA1 include path; selecting
    !! solver="v1" then aborts at init, from vilma_v1_require, with an actionable
    !! message — never a link error and never a crash. See doc/vilma-v1-backend.md.
    !!
@@ -28,29 +28,29 @@ module vilma_v1
    !! There are THREE grids in play, and the boundaries matter:
    !!   host lon-lat     — the driver's forcing grid. vilma_coupling/vilma_drive remap it
    !!                      to the model Gauss grid; this module never sees it.
-   !!   model Gauss      — the VILMA Gauss-Legendre grid (sht, nphi x nlat, rows
+   !!   model Gauss      — the VILMA2 Gauss-Legendre grid (sht, nphi x nlat, rows
    !!                      NORTH-first). Everything this module is handed and returns
    !!                      is on THIS grid, exactly as for the native solver, so all
    !!                      output files and diagnostics are directly comparable.
-   !!   VILMA-v1 grid       — VILMA-v1's own Gauss-Legendre grid at vg%jmax, whose lon/lat
+   !!   VILMA1 grid       — VILMA1's own Gauss-Legendre grid at vg%jmax, whose lon/lat
    !!                      axes are read from par%vilma_v1_grid_file (512 x 256 for the
-   !!                      CLIMBER-X jmax=170 setup). VILMA-v1's `rsl` lives here, as
+   !!                      CLIMBER-X jmax=170 setup). VILMA1's `rsl` lives here, as
    !!                      (lat,lon) — note the transpose.
    !! This module owns the second remap leg and nothing else:
-   !!   model Gauss --(conservative, coords "con")--> VILMA-v1   for ice thickness
-   !!   VILMA-v1 --(bilinear, coords "bilinear")--> model Gauss   for relative sea level
+   !!   model Gauss --(conservative, coords "con")--> VILMA1   for ice thickness
+   !!   VILMA1 --(bilinear, coords "bilinear")--> model Gauss   for relative sea level
    !! mirroring the conservative-in / bilinear-out pairing vilma_remap uses for the
-   !! host leg and CLIMBER-X uses for its own VILMA-v1 coupling.
+   !! host leg and CLIMBER-X uses for its own VILMA1 coupling.
    !!
    !! --- Clock ------------------------------------------------------------------
-   !! VILMA-v1's time axis is in kyr. CLIMBER-X feeds it calendar ka BP; this wrapper
+   !! VILMA1's time axis is in kyr. CLIMBER-X feeds it calendar ka BP; this wrapper
    !! feeds it the MODEL time (vilma_coupling's se%time) divided by 1000, which for the
    !! standalone driver is the forcing file's own time axis (e.g. -26.0 -> 0.0 kyr
-   !! for a deglaciation). VILMA-v1's viscoelastic response depends only on time
-   !! DIFFERENCES, so the labelling affects only VILMA-v1's own diagnostic output files.
+   !! for a deglaciation). VILMA1's viscoelastic response depends only on time
+   !! DIFFERENCES, so the labelling affects only VILMA1's own diagnostic output files.
    !!
    !! --- Deferred setup ---------------------------------------------------------
-   !! VILMA-v1's `setup` needs both the integration time step and the start time, and
+   !! VILMA1's `setup` needs both the integration time step and the start time, and
    !! the vilma_coupling API supplies neither at init (the driver's coupling interval
    !! comes from the forcing axis, and the clock is set after init). So init does
    !! everything that does not need them — grids, maps, the reference NetCDFs — and
@@ -65,8 +65,8 @@ module vilma_v1
    use ncio
    use iso_fortran_env, only: error_unit
 #ifdef VILMA_V1
-   ! --- the VILMA-v1 library (only under `make vilma_v1=1`) --------------------------
-   ! explicit `only:` lists throughout, so no VILMA-v1 name can shadow one of ours
+   ! --- the VILMA1 library (only under `make vilma_v1=1`) --------------------------
+   ! explicit `only:` lists throughout, so no VILMA1 name can shadow one of ours
    use mod_struct_vg,  only: vg
    use mod_sle,        only: rsl
    use mod_io,         only: io_densi, io_visko, io_nc3in, io_tint, io_sliin, &
@@ -91,27 +91,27 @@ module vilma_v1
    real(wp), parameter :: FOURPI = 12.566370614359172_wp
 
    type :: vilma_v1_backend
-      !! Everything this wrapper owns between calls. The VILMA-v1 library itself keeps
+      !! Everything this wrapper owns between calls. The VILMA1 library itself keeps
       !! its state in its own module variables (it is a singleton), so only ONE
       !! vilma_v1_backend may be active in a process — the same restriction CLIMBER-X
       !! lives with.
       logical :: active  = .false.   !! init has run
-      logical :: started = .false.   !! VILMA-v1 `setup` has been called
-      integer :: nlon = 0, nlat = 0  !! VILMA-v1 grid dimensions (lon, lat)
+      logical :: started = .false.   !! VILMA1 `setup` has been called
+      integer :: nlon = 0, nlat = 0  !! VILMA1 grid dimensions (lon, lat)
       integer :: nphi = 0, ngauss = 0!! model Gauss grid dimensions
-      real(wp) :: t_kyr = 0.0_wp     !! VILMA-v1 clock: end of the last completed interval [kyr]
-      integer  :: nsub = 1           !! VILMA-v1 sub-steps per coupling interval (p%vilma_v1_nsub)
+      real(wp) :: t_kyr = 0.0_wp     !! VILMA1 clock: end of the last completed interval [kyr]
+      integer  :: nsub = 1           !! VILMA1 sub-steps per coupling interval (p%vilma_v1_nsub)
 
-      character(len=512) :: out_dir = ""       !! VILMA-v1 scratch/output directory
-      real(wp), allocatable :: lon(:), lat(:)  !! VILMA-v1 grid axes [degrees]
+      character(len=512) :: out_dir = ""       !! VILMA1 scratch/output directory
+      real(wp), allocatable :: lon(:), lat(:)  !! VILMA1 grid axes [degrees]
 
       type(grid_class) :: gauss                !! model Gauss grid, lat ASCENDING (coords order)
-      type(grid_class) :: vgrid                !! VILMA-v1 grid
-      type(map_class)  :: to_vilma_v1             !! model Gauss -> VILMA-v1, conservative
-      type(map_class)  :: to_gauss             !! VILMA-v1 -> model Gauss, bilinear
+      type(grid_class) :: vgrid                !! VILMA1 grid
+      type(map_class)  :: to_vilma_v1             !! model Gauss -> VILMA1, conservative
+      type(map_class)  :: to_gauss             !! VILMA1 -> model Gauss, bilinear
 
-      real(wp), allocatable :: h_ice_v(:,:)    !! current ice on the VILMA-v1 grid [m]
-      real(wp), allocatable :: h_ref_v(:,:)    !! reference ice on the VILMA-v1 grid [m] (history slice 1)
+      real(wp), allocatable :: h_ice_v(:,:)    !! current ice on the VILMA1 grid [m]
+      real(wp), allocatable :: h_ref_v(:,:)    !! reference ice on the VILMA1 grid [m] (history slice 1)
       real(wp), allocatable :: work_v(:,:)     !! (nlon,nlat) scratch
    end type vilma_v1_backend
 
@@ -135,9 +135,9 @@ contains
       if (vilma_v1_available()) return
       write(error_unit,'(a)') ''
       write(error_unit,'(a)') ' ======================================================================'
-      write(error_unit,'(a)') '  VILMA: solver="v1" requested, but this binary has no VILMA-v1.'
+      write(error_unit,'(a)') '  VILMA2: solver="v1" requested, but this binary has no VILMA1.'
       write(error_unit,'(a)') ' ======================================================================'
-      write(error_unit,'(a)') '  The VILMA-v1 backend is OPTIONAL and is OFF by default, because VILMA-v1 is'
+      write(error_unit,'(a)') '  The VILMA1 backend is OPTIONAL and is OFF by default, because VILMA1 is'
       write(error_unit,'(a)') '  a hand-installed precompiled library that is absent on most machines.'
       write(error_unit,'(a)') ''
       write(error_unit,'(a)') '  To use it, rebuild with the backend switched on:'
@@ -148,10 +148,10 @@ contains
       write(error_unit,'(a)') '  where VILMA_V1_ROOT holds  include/*.mod  and  lib/vega_pism.a .'
       write(error_unit,'(a)') ''
       write(error_unit,'(a)') '  Otherwise set  solver = "v2"  in the &vilma namelist group to use'
-      write(error_unit,'(a)') '  the native VILMA solver.  See doc/vilma-v1-backend.md.'
+      write(error_unit,'(a)') '  the native VILMA2 solver.  See doc/vilma-v1-backend.md.'
       write(error_unit,'(a)') ' ======================================================================'
       flush(error_unit)
-      error stop 'solver="v1" requires building with `make vilma vilma_v1=1` and a VILMA-v1 install at VILMA_V1_ROOT'
+      error stop 'solver="v1" requires building with `make vilma vilma_v1=1` and a VILMA1 install at VILMA_V1_ROOT'
    end subroutine vilma_v1_require
 
    ! --- lifecycle --------------------------------------------------------------
@@ -159,8 +159,8 @@ contains
    subroutine vilma_v1_init(self, par, sht, z_bed_eq, h_ice_eq, h_ice)
       !! Prepare the backend. The three reference/state fields are on the MODEL
       !! GAUSS GRID (nphi,nlat, rows north-first), exactly as the native solver
-      !! receives them; this routine remaps them onto VILMA-v1's grid and lays down the
-      !! file-based environment VILMA-v1 reads. VILMA-v1's own `setup` is deferred to the
+      !! receives them; this routine remaps them onto VILMA1's grid and lays down the
+      !! file-based environment VILMA1 reads. VILMA1's own `setup` is deferred to the
       !! first advancing update (see the module header).
       type(vilma_v1_backend),  intent(inout) :: self
       type(vilma_param_class), intent(in)    :: par
@@ -170,7 +170,7 @@ contains
       real(wp),             intent(in)    :: h_ice(:,:)     !! start-slice ice [m]
 #ifndef VILMA_V1
       call vilma_v1_require()     ! aborts; the arguments are unused in the stub build
-      ! (referenced so the stub compiles warning-free without touching VILMA-v1)
+      ! (referenced so the stub compiles warning-free without touching VILMA1)
       if (.false.) print *, self%active, par%vilma_v1_jmax, sht%lmax, &
                             size(z_bed_eq), size(h_ice_eq), size(h_ice)
 #else
@@ -185,11 +185,11 @@ contains
       ! out_dir/restart/ -- not out_dir itself. The guard used to test
       ! out_dir//'/mos_acompl.nc' (od+14) while the restart scratch names are
       ! od+22, so an out_dir in that 8-character window passed the check and then
-      ! truncated into VILMA-v1's character(len=120) fields -- which surfaces as a
+      ! truncated into VILMA1's character(len=120) fields -- which surfaces as a
       ! bare "No such file or directory", the exact failure this guard prevents.
       call check_path_len(trim(self%out_dir)//'/restart/nwl_struct.nc')
 
-      ! --- grids + the model-Gauss <-> VILMA-v1 map pair --------------------------
+      ! --- grids + the model-Gauss <-> VILMA1 map pair --------------------------
       call build_maps(self, par, sht)
 
       allocate(self%work_v(self%nlon, self%nlat))
@@ -203,7 +203,7 @@ contains
       call gauss_to_vilma_v1(self, sht, h_ice,    self%h_ice_v, is_ice=.true.)
       call warn_if_not_relaxed(self)
 
-      ! --- VILMA-v1 run configuration (vg) ---------------------------------------
+      ! --- VILMA1 run configuration (vg) ---------------------------------------
       ! Mirrors CLIMBER-X vilma_init. vg%dt / vg%btime / vg%etime are filled on the
       ! first advancing update, which is also when `setup` runs.
       vg%jmin       = 0
@@ -214,7 +214,7 @@ contains
       vg%l_mod      = merge(1, 0, par%l_visc_3d)   ! 0 = 1-D radial, 1 = read 3-D field
       vg%l_toro     = 0        ! toroidal loading is irrelevant for GIA
       ! Follow par%rotation rather than hardwiring it on: otherwise rotation=.false.
-      ! gives a non-rotating VILMA against a rotating VILMA-v1, the highest-order
+      ! gives a non-rotating VILMA2 against a rotating VILMA1, the highest-order
       ! physics term differing silently in an v2-v1 pair.
       vg%l_rot      = merge(31, 0, par%rotation)   ! rotational variations in the potential
       vg%l_grid     = 2        ! loading supplied as a spatial grid
@@ -222,9 +222,9 @@ contains
       vg%ntime      = 10000000 ! no cap: the driver's window decides
       vg%l_wepoch   = 1        ! output epochs listed in wepochs.inp
       vg%l_load_hist = .false. ! only the current slice is kept in the ice-history file
-      vg%restart    = .false.  ! VILMA restarts are not wired to VILMA-v1's (see doc)
+      vg%restart    = .false.  ! VILMA2 restarts are not wired to VILMA1's (see doc)
 
-      ! --- VILMA-v1's file environment -------------------------------------------
+      ! --- VILMA1's file environment -------------------------------------------
       ! Only what does not depend on the (not-yet-known) coupling interval: the
       ! reference NetCDFs, the ice-history file, and the index naming them. The
       ! epoch-dependent pieces (loadh.inp, wepochs.inp, io.tmp) are written in
@@ -239,19 +239,19 @@ contains
       self%active  = .true.
 
       write(*,'(a)')             ' ======================================================='
-      write(*,'(a)')             '  solid-earth backend: VILMA-v1'
+      write(*,'(a)')             '  solid-earth backend: VILMA1'
       write(*,'(a,i0)')          '    jmax          = ', vg%jmax
-      write(*,'(a,i0,a,i0)')     '    VILMA-v1 grid    = ', self%nlon, ' x ', self%nlat
+      write(*,'(a,i0,a,i0)')     '    VILMA1 grid    = ', self%nlon, ' x ', self%nlat
       write(*,'(a,i0,a,i0)')     '    model Gauss   = ', self%nphi, ' x ', self%ngauss
       write(*,'(a,a)')           '    work dir      = ', trim(self%out_dir)
       write(*,'(a,l1)')          '    3-D viscosity = ', par%l_visc_3d
-      write(*,'(a)')             '    (VILMA-v1 setup deferred to the first advancing step)'
+      write(*,'(a)')             '    (VILMA1 setup deferred to the first advancing step)'
       write(*,'(a)')             ' ======================================================='
 #endif
    end subroutine vilma_v1_init
 
    subroutine vilma_v1_update(self, sht, h_ice, dt_yr, rsl_gauss, t_remap, t_solve)
-      !! Advance VILMA-v1 by dt_yr years under the ice thickness h_ice (MODEL GAUSS
+      !! Advance VILMA1 by dt_yr years under the ice thickness h_ice (MODEL GAUSS
       !! GRID) and return the relative sea level on the MODEL GAUSS GRID. t_remap
       !! and t_solve are accumulators (seconds) for the two phases, kept separate so
       !! the coupling cost and the solver cost can be reported independently.
@@ -273,29 +273,29 @@ contains
 
       if (.not. self%active) error stop 'vilma_v1_update: backend not initialised'
 
-      ! ice onto VILMA-v1's grid (conservative + global mass match)
+      ! ice onto VILMA1's grid (conservative + global mass match)
       call system_clock(pc0, prate)
       call gauss_to_vilma_v1(self, sht, h_ice, self%h_ice_v, is_ice=.true.)
       call system_clock(pc1);  t_remap = t_remap + real(pc1-pc0,wp)/prate
 
       if (dt_yr <= 0.0_wp) then
          ! Seed step: the entering ice is now recorded in h_ice_v and nothing is
-         ! advanced. VILMA-v1's `setup` needs a real interval, so it stays deferred.
+         ! advanced. VILMA1's `setup` needs a real interval, so it stays deferred.
          return
       end if
 
       call system_clock(pc0, prate)
       if (.not. self%started) call start_vilma_v1(self, dt_yr)
 
-      ! A fresh interval: drop the per-interval restart scratch VILMA-v1 would otherwise
+      ! A fresh interval: drop the per-interval restart scratch VILMA1 would otherwise
       ! pick up (exactly as CLIMBER-X's vilma_update does).
       call delete_if_present(io_rsl_rs%n)
       call delete_if_present(io_dfgl_rs%n)
 
-      ! VILMA-v1 re-reads the load from its ice-history NetCDF every step (that is what
+      ! VILMA1 re-reads the load from its ice-history NetCDF every step (that is what
       ! vg%l_load_hist = .false. buys), so the current slice is published first.
       ! Once per COUPLING interval, not per sub-step: the load is held across the
-      ! sub-steps, which is VILMA-v1's own convention and the documented difference
+      ! sub-steps, which is VILMA1's own convention and the documented difference
       ! from the native solver's linear ramp within an interval.
       call write_ice_slice(self)
       block
@@ -313,14 +313,14 @@ contains
 
       if (size(rsl,1) /= self%nlat .or. size(rsl,2) /= self%nlon) then
          write(error_unit,'(a,i0,a,i0,a,i0,a,i0,a)') &
-              ' vilma_v1: VILMA-v1 returned rsl(', size(rsl,1), ',', size(rsl,2), &
+              ' vilma_v1: VILMA1 returned rsl(', size(rsl,1), ',', size(rsl,2), &
               ') but vilma_v1_grid_file describes a (', self%nlat, ',', self%nlon, ') grid'
          write(error_unit,'(a)') '   vilma_v1_jmax and vilma_v1_grid_file must describe the same grid.'
          flush(error_unit)
-         error stop 'vilma_v1_update: VILMA-v1 grid does not match vilma_v1_grid_file'
+         error stop 'vilma_v1_update: VILMA1 grid does not match vilma_v1_grid_file'
       end if
 
-      ! relative sea level back onto the model Gauss grid. VILMA-v1 stores rsl as
+      ! relative sea level back onto the model Gauss grid. VILMA1 stores rsl as
       ! (lat,lon) in double precision; transpose to (lon,lat) before remapping.
       call system_clock(pc0)
       self%work_v = transpose(real(rsl, wp))
@@ -330,7 +330,7 @@ contains
    end subroutine vilma_v1_update
 
    subroutine vilma_v1_finalize(self)
-      !! Release the wrapper's state and close VILMA-v1 down. Safe on a fresh object.
+      !! Release the wrapper's state and close VILMA1 down. Safe on a fresh object.
       type(vilma_v1_backend), intent(inout) :: self
 #ifdef VILMA_V1
       if (self%active .and. self%started) call close_evolution
@@ -348,22 +348,22 @@ contains
 
 #ifdef VILMA_V1
    ! ===========================================================================
-   ! Internals — compiled only in a VILMA-v1 build.
+   ! Internals — compiled only in a VILMA1 build.
    ! ===========================================================================
 
    subroutine start_vilma_v1(self, dt_yr)
-      !! Finish the configuration that needs the coupling interval, write VILMA-v1's
+      !! Finish the configuration that needs the coupling interval, write VILMA1's
       !! stdin file, and call `setup`. Runs once, on the first advancing update.
       !!
       !! vg%dt is fixed here from the FIRST coupling interval and written into
-      !! io.tmp, because that is what VILMA-v1's setup consumes. A forcing axis with a
-      !! non-uniform cadence therefore hands VILMA-v1 sub-steps it was not configured
+      !! io.tmp, because that is what VILMA1's setup consumes. A forcing axis with a
+      !! non-uniform cadence therefore hands VILMA1 sub-steps it was not configured
       !! for. That is NOT currently detected: there is no cadence check anywhere in
       !! this wrapper (see doc/vilma-v1-backend.md).
       type(vilma_v1_backend), intent(inout) :: self
       real(wp),            intent(in)    :: dt_yr
 
-      ! VILMA-v1's dt is in SECONDS, and it is the SUB-step: VILMA-v1 checks this value
+      ! VILMA1's dt is in SECONDS, and it is the SUB-step: VILMA1 checks this value
       ! against the shortest Maxwell time in the structure at setup and aborts if
       ! it is too large. It has no sub-stepping of its own, so the coupling
       ! interval is divided here instead.
@@ -377,17 +377,17 @@ contains
       call write_output_epochs(self)
       call create_load_history(self, self%t_kyr, self%t_kyr + dt_yr*1.0e-3_wp)
 
-      write(*,'(a,es10.3,a,i0,a,es10.3,a,f10.4,a)') ' VILMA-v1 setup: coupling dt =', dt_yr, &
+      write(*,'(a,es10.3,a,i0,a,es10.3,a,f10.4,a)') ' VILMA1 setup: coupling dt =', dt_yr, &
            ' yr / ', self%nsub, ' sub-step(s) =', dt_yr/real(self%nsub, wp), &
            ' yr, start epoch =', self%t_kyr, ' kyr'
       call setup
       self%started = .true.
-      write(*,'(a)') ' VILMA-v1 setup complete.'
+      write(*,'(a)') ' VILMA1 setup complete.'
    end subroutine start_vilma_v1
 
    subroutine build_maps(self, par, sht)
-      !! Read VILMA-v1's lon/lat axes and build the two remap legs between the model
-      !! Gauss grid and VILMA-v1's grid. Weights are cached by coords under "maps" and
+      !! Read VILMA1's lon/lat axes and build the two remap legs between the model
+      !! Gauss grid and VILMA1's grid. Weights are cached by coords under "maps" and
       !! keyed by the grid names, which carry their dimensions so a resolution change
       !! invalidates the cache — the same scheme vilma_remap uses.
       type(vilma_v1_backend),  intent(inout) :: self
@@ -401,7 +401,7 @@ contains
       inquire(file=trim(par%vilma_v1_grid_file), exist=ok)
       if (.not. ok) then
          write(error_unit,'(a)') ' vilma_v1: vilma_v1_grid_file not found: '//trim(par%vilma_v1_grid_file)
-         write(error_unit,'(a)') '   it must carry VILMA-v1''s own lon/lat axes (see doc/vilma-v1-backend.md)'
+         write(error_unit,'(a)') '   it must carry VILMA1''s own lon/lat axes (see doc/vilma-v1-backend.md)'
          flush(error_unit)
          error stop 'vilma_v1_init: vilma_v1_grid_file not found'
       end if
@@ -436,12 +436,12 @@ contains
    end subroutine build_maps
 
    subroutine gauss_to_vilma_v1(self, sht, f_gauss, f_vilma_v1, is_ice)
-      !! Model Gauss grid -> VILMA-v1 grid, conservatively.
+      !! Model Gauss grid -> VILMA1 grid, conservatively.
       !!
       !! is_ice=.true. additionally (a) remaps a 0/1 ice mask and zeroes cells whose
       !! mask falls below 0.5, so ice is not smeared across the coastline — the trick
       !! CLIMBER-X's wrapper uses — and (b) rescales by a single global factor so the
-      !! ice mass VILMA-v1 receives equals the mass on the model Gauss grid as SHTns
+      !! ice mass VILMA1 receives equals the mass on the model Gauss grid as SHTns
       !! integrates it. (b) is a DELIBERATE difference from CLIMBER-X, which does not
       !! rescale: it makes the two backends see identical ice mass, which is the
       !! whole point of driving them from one driver.
@@ -482,7 +482,7 @@ contains
    end subroutine gauss_to_vilma_v1
 
    subroutine vilma_v1_to_gauss(self, f_vilma_v1, f_gauss)
-      !! VILMA-v1 grid -> model Gauss grid, bilinearly (a smooth field: relative sea
+      !! VILMA1 grid -> model Gauss grid, bilinearly (a smooth field: relative sea
       !! level). No mass rescale: vilma_coupling reconstructs the bed from it as
       !! z_bed_eq - rsl, exactly as it does for the native solver.
       type(vilma_v1_backend), intent(in)  :: self
@@ -499,14 +499,14 @@ contains
       end do
    end subroutine vilma_v1_to_gauss
 
-   ! --- VILMA-v1's file environment ----------------------------------------------
+   ! --- VILMA1's file environment ----------------------------------------------
 
    subroutine set_io_paths(self, par)
-      !! Point every VILMA-v1 input/output unit at a path under vilma_v1_input_dir (static
+      !! Point every VILMA1 input/output unit at a path under vilma_v1_input_dir (static
       !! inputs) or vilma_v1_out_dir (everything the run produces). One-for-one with
       !! CLIMBER-X's vilma_init, except that paths are always joined with "/" and
       !! the restart-matrix scratch lives under <out_dir>/restart rather than a
-      !! separate restart-input tree (VILMA does not wire VILMA-v1 restarts).
+      !! separate restart-input tree (VILMA2 does not wire VILMA1 restarts).
       type(vilma_v1_backend),  intent(in) :: self
       type(vilma_param_class), intent(in) :: par
       character(len=:), allocatable :: id, od, rd
@@ -522,9 +522,9 @@ contains
       io_sliin%n  = id//'/SLI_data.inp'
 
       ! run-generated control + output
-      io_tmp%n     = od//'/io.tmp'          ! VILMA-v1's stdin, written by write_stdin_file
+      io_tmp%n     = od//'/io.tmp'          ! VILMA1's stdin, written by write_stdin_file
       io_lis%n     = od//'/vega.lis'        ! traceable log
-      io_wepoch%n  = od//'/wepochs.inp'     ! epochs at which VILMA-v1 writes its own output
+      io_wepoch%n  = od//'/wepochs.inp'     ! epochs at which VILMA1 writes its own output
       io_hist%n    = od//'/load_hist.inp'   ! index of the ice-load-history files
       io_surf%n    = od//'/vega1.nc'
       io_radii%n   = od//'/radii.dat'
@@ -540,7 +540,7 @@ contains
       io_rpt%n     = od//'/vega_rpt.dat'
       io_rslog%n   = od//'/restart.log'
 
-      ! Galerkin-system / structure scratch (VILMA-v1's restart arrays)
+      ! Galerkin-system / structure scratch (VILMA1's restart arrays)
       io_mos_indx%n   = rd//'/mos_indx.nc'
       io_mos_amtrx%n  = rd//'/mos_amtrx.nc'
       io_mos_acomp%n  = rd//'/mos_acomp.nc'
@@ -555,7 +555,7 @@ contains
       io_1dstress%n   = rd//'/ctc_stress.nc'
       ! io_rsrpt is the rotation-potential state, touched by setup / w_restart /
       ! r_restart alike. CLIMBER-X never assigns it, so it silently falls back to
-      ! VILMA-v1's default relative path "restart/rotpot.log" and depends on the
+      ! VILMA1's default relative path "restart/rotpot.log" and depends on the
       ! process working directory having such a folder. Point it at ours instead.
       io_rsrpt%n      = rd//'/rotpot.log'
 
@@ -567,7 +567,7 @@ contains
    end subroutine set_io_paths
 
    subroutine write_stdin_file()
-      !! VILMA-v1's parameter file (io.tmp), which replaces its interactive stdin. The
+      !! VILMA1's parameter file (io.tmp), which replaces its interactive stdin. The
       !! order of the ten records is fixed by the library; see CLIMBER-X's vilma.F90
       !! for the same block with the same comments.
       integer :: u
@@ -599,14 +599,14 @@ contains
    end subroutine write_load_hist_index
 
    subroutine create_load_history(self, t0_kyr, t1_kyr)
-      !! Create the ice-load history file VILMA-v1 integrates against, and the ASCII
+      !! Create the ice-load history file VILMA1 integrates against, and the ASCII
       !! epoch index that describes it. Called once, from start_vilma_v1, when the first
       !! coupling interval is known.
       !!
       !! WHY IT LOOKS LIKE THIS. With vg%l_load_hist = .false. the history holds
-      !! exactly TWO slices, and VILMA-v1 re-reads them unconditionally on every step:
+      !! exactly TWO slices, and VILMA1 re-reads them unconditionally on every step:
       !!
-      !!   slice 1, epoch t0 : the REFERENCE ice load. VILMA-v1 requires the first
+      !!   slice 1, epoch t0 : the REFERENCE ice load. VILMA1 requires the first
       !!                       referenced load to vanish against the reference ice
       !!                       file (vilma_h_ice_eq.nc) and aborts otherwise with
       !!                       "first referenced load file should vanish but shows
@@ -616,15 +616,15 @@ contains
       !!                       by write_ice_slice.
       !!
       !! The epoch coordinate is written once and left alone, exactly as CLIMBER-X's
-      !! wrapper does: VILMA-v1's internal time marches past t1 after the first interval
+      !! wrapper does: VILMA1's internal time marches past t1 after the first interval
       !! and it then keeps using the last record, i.e. the load is held at the current
       !! slice across each interval. That is a real difference from the native solver,
       !! which ramps the load linearly from the previous slice to the new one within
       !! the interval — see doc/vilma-v1-backend.md, "known differences".
       !!
       !! loadh.inp's first row is `nlat nlon rho_ice rho_ocean` — LATITUDE FIRST, and
-      !! nlat/nlon must equal the NetCDF lat/lon sizes or VILMA-v1's check_dim_ne aborts.
-      !! The densities are VILMA's OWN rho_ice / rho_water, so both backends
+      !! nlat/nlon must equal the NetCDF lat/lon sizes or VILMA1's check_dim_ne aborts.
+      !! The densities are VILMA2's OWN rho_ice / rho_water, so both backends
       !! turn the same ice thickness into the same load; CLIMBER-X hard-codes
       !! 910/1020 there instead.
       type(vilma_v1_backend), intent(in) :: self
@@ -656,9 +656,9 @@ contains
    end subroutine create_load_history
 
    subroutine write_output_epochs(self)
-      !! wepochs.inp: the epochs at which VILMA-v1 writes its own diagnostic output.
+      !! wepochs.inp: the epochs at which VILMA1 writes its own diagnostic output.
       !! Only the run bounds are listed — the fields this coupling needs come back
-      !! in memory (mod_sle's rsl), not through VILMA-v1's files.
+      !! in memory (mod_sle's rsl), not through VILMA1's files.
       type(vilma_v1_backend), intent(in) :: self
       integer :: u
       open(newunit=u, file=trim(io_wepoch%n), form='formatted', status='replace', action='write')
@@ -668,8 +668,8 @@ contains
    end subroutine write_output_epochs
 
    subroutine write_reference_nc(self, zeq_v)
-      !! The relaxed reference state on VILMA-v1's grid, named by line 3 of
-      !! load_hist.inp: the topography VILMA-v1 measures sea level against, and the
+      !! The relaxed reference state on VILMA1's grid, named by line 3 of
+      !! load_hist.inp: the topography VILMA1 measures sea level against, and the
       !! reference ice load the history's first record must reproduce. Written once,
       !! at init, and never touched again.
       type(vilma_v1_backend), intent(in) :: self
@@ -702,7 +702,7 @@ contains
 
    subroutine write_ice_slice(self)
       !! Publish the current ice load as slice 2 of the ice-history file (slice 1
-      !! stays the reference load). This is what VILMA-v1 picks up when it integrates
+      !! stays the reference load). This is what VILMA1 picks up when it integrates
       !! the next interval; CLIMBER-X does the same with l_load_hist = .false.
       type(vilma_v1_backend), intent(in) :: self
       character(len=512) :: fnm
@@ -731,16 +731,16 @@ contains
    end subroutine require_dir
 
    subroutine warn_if_not_relaxed(self)
-      !! VILMA-v1's load history MUST begin from the reference state: its first record
+      !! VILMA1's load history MUST begin from the reference state: its first record
       !! is checked against the reference ice file and the run aborts with
       !!     "first referenced load file should vanish but shows range of ..."
       !! if the two differ. create_load_history therefore pins history slice 1 to the
-      !! reference ice, which means VILMA-v1 starts with ZERO load anomaly and zero
+      !! reference ice, which means VILMA1 starts with ZERO load anomaly and zero
       !! viscous memory at t0 — it has no way to be handed a pre-existing memory
-      !! state, and solid_earth_spinup has no VILMA-v1 analogue (vilma_coupling refuses it).
+      !! state, and solid_earth_spinup has no VILMA1 analogue (vilma_coupling refuses it).
       !!
       !! So if the run's start-slice ice is NOT the reference ice (the usual case for
-      !! i_eq=1, a present-day reference with an LGM start), VILMA-v1 will absorb the
+      !! i_eq=1, a present-day reference with an LGM start), VILMA1 will absorb the
       !! entire start-vs-reference anomaly as a jump in the FIRST interval, while the
       !! native solver measures a genuine departure from a relaxed reference. That is
       !! a physics difference, not a bug, and the run must not pretend otherwise —
@@ -752,7 +752,7 @@ contains
       write(*,'(a)')            ' -----------------------------------------------------------------'
       write(*,'(a,f0.1,a)')     ' WARNING (solver="v1"): start-slice ice differs from the reference'
       write(*,'(a,f0.1,a)')     '   ice by up to ', dmax, ' m.'
-      write(*,'(a)')            '   VILMA-v1 requires its load history to start FROM the reference state,'
+      write(*,'(a)')            '   VILMA1 requires its load history to start FROM the reference state,'
       write(*,'(a)')            '   so it begins with zero load anomaly and zero viscous memory and will'
       write(*,'(a)')            '   take the whole start-vs-reference difference as a jump in the first'
       write(*,'(a)')            '   interval. The native solver does not. For a like-for-like comparison'
@@ -762,11 +762,11 @@ contains
    end subroutine warn_if_not_relaxed
 
    subroutine check_grid_vs_jmax(nlon, nlat, jmax, fname)
-      !! VILMA-v1 derives its Gauss-Legendre working grid from vg%jmax alone: nlon is the
+      !! VILMA1 derives its Gauss-Legendre working grid from vg%jmax alone: nlon is the
       !! smallest power of two strictly greater than 3*jmax, and nlat = nlon/2 (so
       !! jmax=170 gives the N128 grid, 512 x 256). The spatial grid of the load and of
       !! `rsl`, on the other hand, comes from what WE declare in loadh.inp and supply
-      !! in the NetCDFs. If the two disagree, VILMA-v1 either aborts deep inside
+      !! in the NetCDFs. If the two disagree, VILMA1 either aborts deep inside
       !! check_dim_ne or, worse, quietly works on mismatched fields — so check here,
       !! where the message can name the two settings that must agree.
       integer,          intent(in) :: nlon, nlat, jmax
@@ -778,7 +778,7 @@ contains
          want_lon = want_lon*2
       end do
       if (nlon == want_lon .and. nlat == want_lon/2) return
-      write(error_unit,'(a)')      ' vilma_v1: VILMA-v1 grid mismatch.'
+      write(error_unit,'(a)')      ' vilma_v1: VILMA1 grid mismatch.'
       write(error_unit,'(a,i0,a,i0,a,i0)') '   vilma_v1_jmax = ', jmax, &
            ' implies a Gauss grid of ', want_lon, ' x ', want_lon/2
       write(error_unit,'(a,i0,a,i0,a)')    '   but vilma_v1_grid_file describes ', nlon, ' x ', nlat, ':'
@@ -790,16 +790,16 @@ contains
    end subroutine check_grid_vs_jmax
 
    subroutine check_path_len(path)
-      !! VILMA-v1 stores its file names in character(len=120); a longer path would be
+      !! VILMA1 stores its file names in character(len=120); a longer path would be
       !! silently truncated into a file it cannot open. Fail loudly instead.
       character(len=*), intent(in) :: path
       if (len_trim(path) <= VILMA_V1_PATH_LEN) return
-      write(error_unit,'(a,i0,a)') ' vilma_v1: vilma_v1_out_dir is too long — VILMA-v1 stores file names in ', &
+      write(error_unit,'(a,i0,a)') ' vilma_v1: vilma_v1_out_dir is too long — VILMA1 stores file names in ', &
            VILMA_V1_PATH_LEN, ' characters and this would be truncated:'
       write(error_unit,'(a)') '   '//trim(path)
       write(error_unit,'(a)') '   Set &vilma vilma_v1_out_dir to a shorter (e.g. relative) path.'
       flush(error_unit)
-      error stop 'vilma_v1_init: vilma_v1_out_dir path too long for VILMA-v1'
+      error stop 'vilma_v1_init: vilma_v1_out_dir path too long for VILMA1'
    end subroutine check_path_len
 #endif
 

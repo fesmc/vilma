@@ -48,7 +48,7 @@ module vilma_drive
         [character(len=8) :: "h_ice", "rsl", "z_bed", "C_ocean", "bsl"]
    ! ... plus the polar motion when the rotation solver is active. Appended at
    ! runtime rather than made unconditional: with rotation off, or under the
-   ! VILMA-v1 backend (which runs its own rotation internally and never updates
+   ! VILMA1 backend (which runs its own rotation internally and never updates
    ! se%rotation), the state is not computed, and writing zeros would be
    ! indistinguishable from a computed zero.
    character(len=8), parameter :: ROT_OUT_VARS(2) = &
@@ -92,7 +92,7 @@ contains
       call vilma_ctl_print(c)
 
       ! Solver backend check, before any work: an unknown &vilma solver, or
-      ! solver="v1" in a binary built without the optional VILMA-v1 backend (the
+      ! solver="v1" in a binary built without the optional VILMA1 backend (the
       ! default build), aborts here with an actionable message rather than after
       ! minutes of remap and I/O setup.
       call solid_earth_check_solver(p)
@@ -139,8 +139,8 @@ contains
       call system_clock(pc0, prate)
       se%par = p; call solid_earth_init(se, z_bed_eq, h_ice_eq)              ! reference, memory 0
       if (len_trim(c%restart_in_file) > 0) then                              ! resume saved memory + clock
-         ! KNOWN GAP: a VILMA restart file carries the NATIVE solver's
-         ! prognostic memory, which has no VILMA-v1 counterpart. VILMA-v1 restarts through
+         ! KNOWN GAP: a VILMA2 restart file carries the NATIVE solver's
+         ! prognostic memory, which has no VILMA1 counterpart. VILMA1 restarts through
          ! its own files (r_restart / w_restart), which this driver does not wire up.
          if (se%use_vilma_v1) &
             error stop 'vilma_run: restart_in_file is not supported with solver="v1" (see doc/vilma-v1-backend.md)'
@@ -186,7 +186,7 @@ contains
       call vilma_write_step(se, c%file_out, se%time, nms=out_names, init=.true.)
       if (len_trim(c%file_hor) > 0) then
          if (se%use_vilma_v1) error stop 'vilma_run: file_hor is not available with solver="v1" '// &
-                                      '(VILMA-v1 returns no horizontal field)'
+                                      '(VILMA1 returns no horizontal field)'
          call vilma_write_horizontal(se, c%file_hor, se%time, init=.true.)
       end if
 
@@ -209,7 +209,7 @@ contains
          if (len_trim(c%file_hor) > 0) call vilma_write_horizontal(se, c%file_hor, se%time, init=.false.)
          call system_clock(pc1);  t_wrt = t_wrt + real(pc1-pc0,wp)/prate
          nstep = nstep + 1
-         ! mass_resid is the native SLE's own residual; the VILMA-v1 backend leaves it
+         ! mass_resid is the native SLE's own residual; the VILMA1 backend leaves it
          ! at VILMA_UNSET (no analogue), so it is omitted rather than printed as a
          ! meaningless number.
          if (se%worst_mass_resid == VILMA_UNSET) then
@@ -234,15 +234,15 @@ contains
       ! round-trip when laterally 3-D); rest = SLE iteration + load/geoid SHTs.
       ! The remaining breakdowns instrument the NATIVE solver's phases (drift solve,
       ! memory advance, SLE iteration, adaptive stepper). None of them exist when
-      ! VILMA-v1 is the backend, so printing them would be a page of zeros; the VILMA-v1
+      ! VILMA1 is the backend, so printing them would be a page of zeros; the VILMA1
       ! branch below prints the two timers that ARE meaningful for both backends.
       if (nstep > 0 .and. se%use_vilma_v1) then
          write(*,'(a)') ' [PROFILE] solid_earth_update breakdown (per step, wall-clock):'
          write(*,'(a,f8.1,a,f5.1,a)') &
-            '   VILMA-v1 time_evolution  =', 1.0e3_wp*se%t_solver/nstep, ' ms (', &
+            '   VILMA1 time_evolution  =', 1.0e3_wp*se%t_solver/nstep, ' ms (', &
                100.0_wp*se%t_solver/max(t_upd,tiny(1.0_wp)), ' % of update)'
          write(*,'(a,f8.1,a,f5.1,a)') &
-            '   Gauss<->VILMA-v1 remap   =', 1.0e3_wp*se%t_remap/nstep, ' ms (', &
+            '   Gauss<->VILMA1 remap   =', 1.0e3_wp*se%t_remap/nstep, ' ms (', &
                100.0_wp*se%t_remap/max(t_upd,tiny(1.0_wp)), ' % of update)'
          write(*,'(a,f8.1,a,f5.1,a)') &
             '   other (diagnostics)   =', 1.0e3_wp*(t_upd-se%t_solver-se%t_remap)/nstep, ' ms (', &
@@ -310,11 +310,11 @@ contains
          '   sub-steps/interval: n_accept=', real(se%stepper%n_accept,wp)/nstep, &
          '  n_solve=', real(se%stepper%n_solve,wp)/nstep, '  (per coupling step)'
       write(*,'(a,a)') ' vilma: wrote ', trim(c%file_out)
-      ! A VILMA restart snapshot is the NATIVE solver's prognostic memory; it
-      ! has no VILMA-v1 counterpart (VILMA-v1 persists its state through its own restart
+      ! A VILMA2 restart snapshot is the NATIVE solver's prognostic memory; it
+      ! has no VILMA1 counterpart (VILMA1 persists its state through its own restart
       ! files), so with solver="v1" none is written rather than an empty one.
       if (se%use_vilma_v1) then
-         write(*,'(a)') ' vilma: no VILMA restart written (solver="v1" keeps its'
+         write(*,'(a)') ' vilma: no VILMA2 restart written (solver="v1" keeps its'
          write(*,'(a,a)') '            own state under ', trim(p%vilma_v1_out_dir)
       else
          call vilma_restart_write(se, se%time, folder=trim(rundir)//"/final")

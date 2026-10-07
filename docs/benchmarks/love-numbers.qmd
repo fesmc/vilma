@@ -22,7 +22,7 @@ unit surface load at degree $j$, do the elastic (instantaneous) and fluid
 - an inviscid **fluid core** ($\mu=0$).
 
 The layer table (radius, density, shear modulus, viscosity) is the
-incompressible model of the Spada et al. (2011) benchmark. VILMA's
+incompressible model of the Spada et al. (2011) benchmark. VILMA2's
 `vilma_earth_structure` reproduces the benchmark's interface gravities, total mass,
 and moment of inertia as an independent check before any Love number is computed.
 
@@ -68,7 +68,7 @@ M3–L70–V01 table.
 ## Figures
 
 *Figures to be added: $h_j,\ell_j,k_j$ versus degree (elastic and fluid),
-VILMA vs. the M3–L70–V01 table; relative-error spectra.*
+VILMA2 vs. the M3–L70–V01 table; relative-error spectra.*
 
 <!--
 ![Elastic Love numbers vs degree](figures/love_elastic.png)
