@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Maxwell rheology and the memory stress – VILMA v2</title>
+<title>Maxwell rheology and the memory stress – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -301,7 +301,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -383,7 +383,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -423,7 +423,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -576,7 +576,7 @@ window.Quarto = {
   <li><a href="#stability" id="toc-stability" class="nav-link" data-scroll-target="#stability">Stability</a></li>
   <li><a href="#a-modal-reduction-was-tried" id="toc-a-modal-reduction-was-tried" class="nav-link" data-scroll-target="#a-modal-reduction-was-tried">A modal reduction was tried</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/physics/rheology.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/physics/rheology.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -601,7 +601,7 @@ window.Quarto = {
 </header>
 
 
-<p>The mantle is modelled as an <strong>incompressible Maxwell</strong> body: it responds elastically on short timescales and viscously on long ones, with a single Maxwell time <span class="math inline">\(\tau_M = \eta/\mu\)</span> per layer. VILMA integrates this constitutive law <strong>explicitly in the time domain</strong> — there is no normal-mode decomposition and no Laplace transform. This is the structural choice that makes laterally varying (3D) viscosity essentially free.</p>
+<p>The mantle is modelled as an <strong>incompressible Maxwell</strong> body: it responds elastically on short timescales and viscously on long ones, with a single Maxwell time <span class="math inline">\(\tau_M = \eta/\mu\)</span> per layer. VILMA2 integrates this constitutive law <strong>explicitly in the time domain</strong> — there is no normal-mode decomposition and no Laplace transform. This is the structural choice that makes laterally varying (3D) viscosity essentially free.</p>
 <section id="the-maxwell-body" class="level2">
 <h2 class="anchored" data-anchor-id="the-maxwell-body">The Maxwell body</h2>
 <p>For a deviatoric stress <span class="math inline">\(\boldsymbol{\tau}\)</span> and deviatoric strain <span class="math inline">\(\boldsymbol{\varepsilon}\)</span>, the Maxwell rheology is</p>
@@ -664,7 +664,7 @@ F_{\text{diss}} \;=\; -\!\int \boldsymbol{\tau}^{V,i} : \delta\boldsymbol{\varep
 </tr>
 </tbody>
 </table>
-<p><code>"fe"</code> is the <span class="math inline">\(\omega = 1\)</span> scheme of <span class="citation" data-cites="Martinec2000">Martinec (<a href="#ref-Martinec2000" role="doc-biblioref">2000</a>)</span> and matches how VILMA-v1 marches its memory. <code>"trap"</code> is implicit in the end-of-step strain <span class="math inline">\(\boldsymbol{\varepsilon}^{i}\)</span>, which itself depends on <span class="math inline">\(\boldsymbol{\tau}^{V,i}\)</span>. The commit therefore iterates the step endpoint to a consistent strain–memory pair (up to <code>max_couple_iter</code> passes). The exponential (<code>"etd1"</code>) and backward-Euler (<code>"be"</code>) updates are kept in the single-degree stepper as controls for testing; the field driver advances them as <code>"fe"</code> and <code>"trap"</code> respectively.</p>
+<p><code>"fe"</code> is the <span class="math inline">\(\omega = 1\)</span> scheme of <span class="citation" data-cites="Martinec2000">Martinec (<a href="#ref-Martinec2000" role="doc-biblioref">2000</a>)</span> and matches how VILMA1 marches its memory. <code>"trap"</code> is implicit in the end-of-step strain <span class="math inline">\(\boldsymbol{\varepsilon}^{i}\)</span>, which itself depends on <span class="math inline">\(\boldsymbol{\tau}^{V,i}\)</span>. The commit therefore iterates the step endpoint to a consistent strain–memory pair (up to <code>max_couple_iter</code> passes). The exponential (<code>"etd1"</code>) and backward-Euler (<code>"be"</code>) updates are kept in the single-degree stepper as controls for testing; the field driver advances them as <code>"fe"</code> and <code>"trap"</code> respectively.</p>
 <div class="callout callout-style-default callout-note callout-titled" title="Why explicit, not implicit or normal-mode">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -687,7 +687,7 @@ F_{\text{diss}} \;=\; -\!\int \boldsymbol{\tau}^{V,i} : \delta\boldsymbol{\varep
 <p>In the <strong>3D</strong> (laterally varying viscosity) case the operator, the strain coefficients and the dissipative right-hand side are unchanged; only the memory advance differs. <span class="math inline">\(M = \mu\Delta t/\eta(\theta,\varphi)\)</span> becomes a field, so for each radial element the memory and strain tensors are synthesized on the Gauss–Legendre grid from their six dyadic components (Martinec 2000, B10–B11), advanced <strong>pointwise</strong>, and analysed back to spectral space (pseudo-spectral). The per-element Maxwell routines (<code>strain_coeffs</code>, <code>ve_strain_constants</code>, <code>dissipative_rhs</code>, <code>advance_memory</code>) are shared verbatim between the 1D stepper and the field driver. There is no duplicated algorithm and no separate “3D solver”.</p>
 <p>Three details matter in practice:</p>
 <ul>
-<li><strong>Only genuinely 3-D elements pay for the grid round trip.</strong> An element is treated as 3-D when its lateral spread of <span class="math inline">\(\log_{10}\eta\)</span> exceeds <code>visc3d_tol</code> (default <span class="math inline">\(10^{-3}\)</span> dex). Every other Maxwell element collapses to its lateral-mean rate and advances on the cheap per-degree spectral path, as in VILMA-v1’s 1-D/3-D layer split. A laterally uniform field therefore flags no element as 3-D and costs exactly the 1D run.</li>
+<li><strong>Only genuinely 3-D elements pay for the grid round trip.</strong> An element is treated as 3-D when its lateral spread of <span class="math inline">\(\log_{10}\eta\)</span> exceeds <code>visc3d_tol</code> (default <span class="math inline">\(10^{-3}\)</span> dex). Every other Maxwell element collapses to its lateral-mean rate and advances on the cheap per-degree spectral path, as in VILMA1’s 1-D/3-D layer split. A laterally uniform field therefore flags no element as 3-D and costs exactly the 1D run.</li>
 <li><strong>The update is analysed as an increment.</strong> The grid step is written <span class="math inline">\(\boldsymbol{\tau}^{+} = \boldsymbol{\tau} - M(\boldsymbol{\tau} + 2\mu\boldsymbol{\varepsilon})\)</span>, and only the increment is transformed back. Analysing <span class="math inline">\(\boldsymbol{\tau}^{+}\)</span> itself would put the transform’s round-off (<span class="math inline">\(\sim 10^{-13}\)</span> relative to <span class="math inline">\(|\boldsymbol{\tau}|\)</span>) on a change of size <span class="math inline">\(M|\boldsymbol{\tau}|\)</span>. For the stiffest Maxwell elements (<span class="math inline">\(M\sim10^{-10}\)</span> at <span class="math inline">\(\eta\sim10^{30}\)</span> Pa s) that error is of order one per step.</li>
 <li><strong>Elastic and fluid layers stay memory-free.</strong> A 3-D field modulates only the Maxwell layers; the elastic lithosphere of the earth model remains exactly elastic and laterally uniform, whatever the file prescribes there.</li>
 </ul>
@@ -817,7 +817,7 @@ Martinec, Z. 2000. <span>“Spectral–Finite Element Approach to Three-Dimensio
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1161,4 +1161,4 @@ Martinec, Z. 2000. <span>“Spectral–Finite Element Approach to Three-Dimensio
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/physics/rheology.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/physics/rheology.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

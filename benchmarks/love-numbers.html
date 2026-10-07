@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Benchmark: Love numbers – VILMA v2</title>
+<title>Benchmark: Love numbers – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -301,7 +301,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -383,7 +383,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -423,7 +423,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -574,7 +574,7 @@ window.Quarto = {
   <li><a href="#figures" id="toc-figures" class="nav-link" data-scroll-target="#figures">Figures</a></li>
   <li><a href="#provenance" id="toc-provenance" class="nav-link" data-scroll-target="#provenance">Provenance</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/benchmarks/love-numbers.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/benchmarks/love-numbers.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -618,7 +618,7 @@ window.Quarto = {
 <li>three viscous <strong>mantle layers</strong>,</li>
 <li>an inviscid <strong>fluid core</strong> (<span class="math inline">\(\mu=0\)</span>).</li>
 </ul>
-<p>The layer table (radius, density, shear modulus, viscosity) is the incompressible model of the Spada et al.&nbsp;(2011) benchmark. VILMA’s <code>vilma_earth_structure</code> reproduces the benchmark’s interface gravities, total mass, and moment of inertia as an independent check before any Love number is computed.</p>
+<p>The layer table (radius, density, shear modulus, viscosity) is the incompressible model of the Spada et al.&nbsp;(2011) benchmark. VILMA2’s <code>vilma_earth_structure</code> reproduces the benchmark’s interface gravities, total mass, and moment of inertia as an independent check before any Love number is computed.</p>
 </section>
 <section id="definitions" class="level2">
 <h2 class="anchored" data-anchor-id="definitions">Definitions</h2>
@@ -645,7 +645,7 @@ k_j = -\frac{F(a)}{\varphi^{L}} - 1.
 </section>
 <section id="figures" class="level2">
 <h2 class="anchored" data-anchor-id="figures">Figures</h2>
-<p><em>Figures to be added: <span class="math inline">\(h_j,\ell_j,k_j\)</span> versus degree (elastic and fluid), VILMA vs.&nbsp;the M3–L70–V01 table; relative-error spectra.</em></p>
+<p><em>Figures to be added: <span class="math inline">\(h_j,\ell_j,k_j\)</span> versus degree (elastic and fluid), VILMA2 vs.&nbsp;the M3–L70–V01 table; relative-error spectra.</em></p>
 <!--
 ![Elastic Love numbers vs degree](figures/love_elastic.png)
 ![Relative error vs degree](figures/love_error.png)
@@ -756,7 +756,7 @@ Spada, G., V. R. Barletta, V. Klemann, et al. 2011. <span>“A Benchmark Study f
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1100,4 +1100,4 @@ Spada, G., V. R. Barletta, V. Klemann, et al. 2011. <span>“A Benchmark Study f
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/benchmarks/love-numbers.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/benchmarks/love-numbers.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

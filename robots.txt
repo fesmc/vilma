@@ -1,1 +1,1 @@
-Sitemap: https://fesmc.github.io/vilma/sitemap.xml
+Sitemap: https://fesmc.github.io/vilma2/sitemap.xml

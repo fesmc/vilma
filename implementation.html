@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Implementation and attribution – VILMA v2</title>
+<title>Implementation and attribution – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -272,7 +272,7 @@ div.csl-indent {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -354,7 +354,7 @@ div.csl-indent {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -394,7 +394,7 @@ div.csl-indent {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -544,7 +544,7 @@ div.csl-indent {
   <li><a href="#build-and-host-coupling" id="toc-build-and-host-coupling" class="nav-link" data-scroll-target="#build-and-host-coupling">Build and host coupling</a></li>
   <li><a href="#license-and-citation" id="toc-license-and-citation" class="nav-link" data-scroll-target="#license-and-citation">License and citation</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/implementation.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/implementation.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -569,10 +569,10 @@ div.csl-indent {
 </header>
 
 
-<p>VILMA v2 is a modern-Fortran implementation of published GIA physics, built on a small set of well-established numerical libraries. This page records what the model is built on, and what informed its development and validation.</p>
+<p>VILMA2 is a modern-Fortran implementation of published GIA physics, built on a small set of well-established numerical libraries. This page records what the model is built on, and what informed its development and validation.</p>
 <section id="physics-and-references" class="level2">
 <h2 class="anchored" data-anchor-id="physics-and-references">Physics and references</h2>
-<p>VILMA v2 reproduces the physics of <strong>VILMA-v1</strong>: an incompressible, self-gravitating, Maxwell-viscoelastic sphere with rotational feedback and a full migrating-coastline sea-level equation. VILMA-v1’s character is documented in <span class="citation" data-cites="Albrecht2024">Albrecht et al. (<a href="#ref-Albrecht2024" role="doc-biblioref">2024</a>)</span> and <span class="citation" data-cites="Bagge2021">Bagge et al. (<a href="#ref-Bagge2021" role="doc-biblioref">2021</a>)</span>. The numerical method follows <span class="citation" data-cites="Martinec2000">Martinec (<a href="#ref-Martinec2000" role="doc-biblioref">2000</a>)</span>, with rotation from <span class="citation" data-cites="MartinecHagedoorn2014">Martinec and Hagedoorn (<a href="#ref-MartinecHagedoorn2014" role="doc-biblioref">2014</a>)</span> and the sea-level equation from <span class="citation" data-cites="KMM2005">Kendall et al. (<a href="#ref-KMM2005" role="doc-biblioref">2005</a>)</span> and <span class="citation" data-cites="Martinec2018">Martinec et al. (<a href="#ref-Martinec2018" role="doc-biblioref">2018</a>)</span>.</p>
+<p>VILMA2 reproduces the physics of <strong>VILMA1</strong>: an incompressible, self-gravitating, Maxwell-viscoelastic sphere with rotational feedback and a full migrating-coastline sea-level equation. VILMA1’s character is documented in <span class="citation" data-cites="Albrecht2024">Albrecht et al. (<a href="#ref-Albrecht2024" role="doc-biblioref">2024</a>)</span> and <span class="citation" data-cites="Bagge2021">Bagge et al. (<a href="#ref-Bagge2021" role="doc-biblioref">2021</a>)</span>. The numerical method follows <span class="citation" data-cites="Martinec2000">Martinec (<a href="#ref-Martinec2000" role="doc-biblioref">2000</a>)</span>, with rotation from <span class="citation" data-cites="MartinecHagedoorn2014">Martinec and Hagedoorn (<a href="#ref-MartinecHagedoorn2014" role="doc-biblioref">2014</a>)</span> and the sea-level equation from <span class="citation" data-cites="KMM2005">Kendall et al. (<a href="#ref-KMM2005" role="doc-biblioref">2005</a>)</span> and <span class="citation" data-cites="Martinec2018">Martinec et al. (<a href="#ref-Martinec2018" role="doc-biblioref">2018</a>)</span>.</p>
 <p>The implementation is modern and minimal: a small, dependency-light Fortran codebase organized as single-purpose modules (<code>vilma_*</code>), validated rung-by-rung against the community benchmarks. It is 3D-ready from the start — laterally varying viscosity costs nothing extra in the solver — while validated first in 1D.</p>
 </section>
 <section id="libraries-we-build-on" class="level2">
@@ -613,7 +613,7 @@ div.csl-indent {
 </section>
 <section id="codebases-and-datasets-that-informed-the-validation" class="level2">
 <h2 class="anchored" data-anchor-id="codebases-and-datasets-that-informed-the-validation">Codebases and datasets that informed the validation</h2>
-<p>Several existing codebases provided independent reference solutions and datasets used during validation of VILMA. Each implements the physics in a somewhat different way, which was helpful for understanding the method, and each supplied reference data used in the benchmark pages:</p>
+<p>Several existing codebases provided independent reference solutions and datasets used during validation of VILMA2. Each implements the physics in a somewhat different way, which was helpful for understanding the method, and each supplied reference data used in the benchmark pages:</p>
 <ul>
 <li><strong><a href="https://github.com/skachuck/giapy">giapy</a></strong> (S. B. Kachuck, MIT) — source of the vendored M3–L70–V01 Love-number table, the SBK sea-level reference curves, and the analytic load/basin specifications for the <span class="citation" data-cites="Martinec2018">Martinec et al. (<a href="#ref-Martinec2018" role="doc-biblioref">2018</a>)</span> cases.</li>
 <li><strong><a href="https://github.com/danielemelini/TABOO">TABOO</a></strong> (D. Melini, GPLv3) — a normal-mode code used as an independent reference to regenerate the M3–L70–V01 Love numbers (NV=3, CODE=7).</li>
@@ -628,7 +628,7 @@ div.csl-indent {
 </section>
 <section id="license-and-citation" class="level2">
 <h2 class="anchored" data-anchor-id="license-and-citation">License and citation</h2>
-<p>See the repository for the current license. When citing the method, cite the primary sources — above all <span class="citation" data-cites="Martinec2000">Martinec (<a href="#ref-Martinec2000" role="doc-biblioref">2000</a>)</span> for the spectral–finite-element approach, and <span class="citation" data-cites="Spada2011">Spada et al. (<a href="#ref-Spada2011" role="doc-biblioref">2011</a>)</span> and <span class="citation" data-cites="Martinec2018">Martinec et al. (<a href="#ref-Martinec2018" role="doc-biblioref">2018</a>)</span> for the benchmarks against which VILMA is validated.</p>
+<p>See the repository for the current license. When citing the method, cite the primary sources — above all <span class="citation" data-cites="Martinec2000">Martinec (<a href="#ref-Martinec2000" role="doc-biblioref">2000</a>)</span> for the spectral–finite-element approach, and <span class="citation" data-cites="Spada2011">Spada et al. (<a href="#ref-Spada2011" role="doc-biblioref">2011</a>)</span> and <span class="citation" data-cites="Martinec2018">Martinec et al. (<a href="#ref-Martinec2018" role="doc-biblioref">2018</a>)</span> for the benchmarks against which VILMA2 is validated.</p>
 
 
 
@@ -749,7 +749,7 @@ Spada, G., V. R. Barletta, V. Klemann, et al. 2011. <span>“A Benchmark Study f
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1093,4 +1093,4 @@ Spada, G., V. R. Barletta, V. Klemann, et al. 2011. <span>“A Benchmark Study f
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/implementation.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/implementation.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

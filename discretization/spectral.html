@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Spectral reduction and the SH transform – VILMA v2</title>
+<title>Spectral reduction and the SH transform – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -301,7 +301,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -383,7 +383,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -423,7 +423,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -572,7 +572,7 @@ window.Quarto = {
   <li><a href="#the-transform-kernel-shtns-fftw" id="toc-the-transform-kernel-shtns-fftw" class="nav-link" data-scroll-target="#the-transform-kernel-shtns-fftw">The transform kernel (SHTns + FFTW)</a></li>
   <li><a href="#resolution" id="toc-resolution" class="nav-link" data-scroll-target="#resolution">Resolution</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/discretization/spectral.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/discretization/spectral.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -619,11 +619,11 @@ window.Quarto = {
 </section>
 <section id="real-orthonormal-harmonics" class="level2">
 <h2 class="anchored" data-anchor-id="real-orthonormal-harmonics">Real, orthonormal harmonics</h2>
-<p>VILMA uses <strong>fully normalized real spherical harmonics with no Condon–Shortley phase</strong>, on a Gauss–Legendre latitude grid with a <span class="math inline">\(\phi\)</span>-contiguous layout; spectral arrays store <span class="math inline">\(m \ge 0\)</span>. This convention (<code>SHT_ORTHONORMAL</code>, <code>SHT_NO_CS_PHASE</code>) is pinned across the whole code so that quadrature (<span class="math inline">\(\int\!\mathrm{d}\Omega\)</span>), the orthonormality of <span class="math inline">\(Y_{10}\)</span>, and round-trip transforms all hold to machine precision.</p>
+<p>VILMA2 uses <strong>fully normalized real spherical harmonics with no Condon–Shortley phase</strong>, on a Gauss–Legendre latitude grid with a <span class="math inline">\(\phi\)</span>-contiguous layout; spectral arrays store <span class="math inline">\(m \ge 0\)</span>. This convention (<code>SHT_ORTHONORMAL</code>, <code>SHT_NO_CS_PHASE</code>) is pinned across the whole code so that quadrature (<span class="math inline">\(\int\!\mathrm{d}\Omega\)</span>), the orthonormality of <span class="math inline">\(Y_{10}\)</span>, and round-trip transforms all hold to machine precision.</p>
 </section>
 <section id="the-transform-kernel-shtns-fftw" class="level2">
 <h2 class="anchored" data-anchor-id="the-transform-kernel-shtns-fftw">The transform kernel (SHTns + FFTW)</h2>
-<p>The grid<span class="math inline">\(\leftrightarrow\)</span>spectral transform is the workhorse of a pseudo-spectral method — it is called many times per time step — so it is built on <strong><a href="https://nschaeffer.name/?lang=en&amp;page=shtns">SHTns</a></strong> <span class="citation" data-cites="Schaeffer2013">(<a href="#ref-Schaeffer2013" role="doc-biblioref">Schaeffer 2013</a>)</span>, a high-performance spherical-harmonic transform library, which in turn uses <strong><a href="https://www.fftw.org/">FFTW</a></strong> <span class="citation" data-cites="FrigoJohnson2005">(<a href="#ref-FrigoJohnson2005" role="doc-biblioref">Frigo and Johnson 2005</a>)</span> for the longitudinal FFTs. VILMA wraps SHTns in a thin Fortran module (<code>vilma_sht</code>) that exposes:</p>
+<p>The grid<span class="math inline">\(\leftrightarrow\)</span>spectral transform is the workhorse of a pseudo-spectral method — it is called many times per time step — so it is built on <strong><a href="https://nschaeffer.name/?lang=en&amp;page=shtns">SHTns</a></strong> <span class="citation" data-cites="Schaeffer2013">(<a href="#ref-Schaeffer2013" role="doc-biblioref">Schaeffer 2013</a>)</span>, a high-performance spherical-harmonic transform library, which in turn uses <strong><a href="https://www.fftw.org/">FFTW</a></strong> <span class="citation" data-cites="FrigoJohnson2005">(<a href="#ref-FrigoJohnson2005" role="doc-biblioref">Frigo and Johnson 2005</a>)</span> for the longitudinal FFTs. VILMA2 wraps SHTns in a thin Fortran module (<code>vilma_sht</code>) that exposes:</p>
 <ul>
 <li>forward / inverse scalar transforms (analysis and synthesis);</li>
 <li>quadrature on the sphere, <span class="math inline">\(\int f\,\mathrm{d}\Omega\)</span>;</li>
@@ -642,13 +642,13 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Re-implementing a fast, accurate, well-tested Legendre transform is a project in itself; SHTns is the de-facto standard for pseudo-spectral geodynamo/GIA work and is many times faster than a naive transform at the resolutions of interest (SH degree <span class="math inline">\(\sim 170\)</span>, grid <span class="math inline">\(1024\times 2048\)</span> at VILMA-v1 resolution). The one non-negotiable is pinning the normalization and phase convention everywhere, so that Love numbers, quadrature, and benchmark comparisons all use the same <span class="math inline">\(Y_{jm}\)</span>.</p>
+<p>Re-implementing a fast, accurate, well-tested Legendre transform is a project in itself; SHTns is the de-facto standard for pseudo-spectral geodynamo/GIA work and is many times faster than a naive transform at the resolutions of interest (SH degree <span class="math inline">\(\sim 170\)</span>, grid <span class="math inline">\(1024\times 2048\)</span> at VILMA1 resolution). The one non-negotiable is pinning the normalization and phase convention everywhere, so that Love numbers, quadrature, and benchmark comparisons all use the same <span class="math inline">\(Y_{jm}\)</span>.</p>
 </div>
 </div>
 </section>
 <section id="resolution" class="level2">
 <h2 class="anchored" data-anchor-id="resolution">Resolution</h2>
-<p>The reference VILMA-v1-scale configuration is SH degree 170 with a <span class="math inline">\(1024\times 2048\)</span> SLE grid. The benchmark cases here run at degree 32–128; the Love-number and disc benchmarks synthesize spatial profiles by summing the per-degree response against Legendre polynomials. <strong>All spherical-harmonic transforms stay inside this model</strong> — a host such as CLIMBER-X exchanges only grid-space ice thickness and bedrock/sea-level fields.</p>
+<p>The reference VILMA1-scale configuration is SH degree 170 with a <span class="math inline">\(1024\times 2048\)</span> SLE grid. The benchmark cases here run at degree 32–128; the Love-number and disc benchmarks synthesize spatial profiles by summing the per-degree response against Legendre polynomials. <strong>All spherical-harmonic transforms stay inside this model</strong> — a host such as CLIMBER-X exchanges only grid-space ice thickness and bedrock/sea-level fields.</p>
 
 
 
@@ -748,7 +748,7 @@ Schaeffer, N. 2013. <span>“Efficient Spherical Harmonic Transforms Aimed at Ps
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1092,4 +1092,4 @@ Schaeffer, N. 2013. <span>“Efficient Spherical Harmonic Transforms Aimed at Ps
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/discretization/spectral.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/discretization/spectral.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

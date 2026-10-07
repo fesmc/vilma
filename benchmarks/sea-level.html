@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Benchmark: the sea-level equation – VILMA v2</title>
+<title>Benchmark: the sea-level equation – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -301,7 +301,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -383,7 +383,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -423,7 +423,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -576,7 +576,7 @@ window.Quarto = {
   <li><a href="#figures" id="toc-figures" class="nav-link" data-scroll-target="#figures">Figures</a></li>
   <li><a href="#provenance" id="toc-provenance" class="nav-link" data-scroll-target="#provenance">Provenance</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/benchmarks/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/benchmarks/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -611,7 +611,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>This is the capstone benchmark: the full <strong>self-consistent, migrating-coastline sea-level equation</strong> driven by the viscoelastic response — the same benchmark VILMA-v1 itself passed. It exercises the ocean function, mass conservation, coastline migration, grounded-ice flotation, and the sub-grid sloping coast all together.</p>
+<p>This is the capstone benchmark: the full <strong>self-consistent, migrating-coastline sea-level equation</strong> driven by the viscoelastic response — the same benchmark VILMA1 itself passed. It exercises the ocean function, mass conservation, coastline migration, grounded-ice flotation, and the sub-grid sloping coast all together.</p>
 <section id="benchmark-structure" class="level2">
 <h2 class="anchored" data-anchor-id="benchmark-structure">Benchmark structure</h2>
 <p>The authority for the case definitions is <strong>Martinec et al.&nbsp;(2018), Table 4</strong> (not the differing case labels in third-party reimplementations). The paper defines five cases from a small set of building blocks:</p>
@@ -688,7 +688,7 @@ window.Quarto = {
 </section>
 <section id="case-a-pure-viscoelastic-loading" class="level2">
 <h2 class="anchored" data-anchor-id="case-a-pure-viscoelastic-loading">Case A — pure viscoelastic loading</h2>
-<p>The simplest case: a spherical cap, Heaviside loading, 10 kyr relaxation, <strong>no ocean</strong>, with degrees <span class="math inline">\(n=0,1\)</span> dropped — a pure viscoelastic cap response. VILMA matches Martinec (2018) fig.&nbsp;10 to <strong>0.52 % (uplift) / 0.69 % (horizontal) / 1.94 % (geoid)</strong> (peak-normalized). This is the <strong>first horizontal-displacement</strong> benchmark and confirms the spheroidal <span class="math inline">\(V\)</span> field (<code>test_benchmark_martinec</code>).</p>
+<p>The simplest case: a spherical cap, Heaviside loading, 10 kyr relaxation, <strong>no ocean</strong>, with degrees <span class="math inline">\(n=0,1\)</span> dropped — a pure viscoelastic cap response. VILMA2 matches Martinec (2018) fig.&nbsp;10 to <strong>0.52 % (uplift) / 0.69 % (horizontal) / 1.94 % (geoid)</strong> (peak-normalized). This is the <strong>first horizontal-displacement</strong> benchmark and confirms the spheroidal <span class="math inline">\(V\)</span> field (<code>test_benchmark_martinec</code>).</p>
 </section>
 <section id="sle-cases-c2-d3-e2-f1" class="level2">
 <h2 class="anchored" data-anchor-id="sle-cases-c2-d3-e2-f1">SLE cases — C2, D3, E2, F1</h2>
@@ -781,7 +781,7 @@ window.Quarto = {
 </section>
 <section id="figures" class="level2">
 <h2 class="anchored" data-anchor-id="figures">Figures</h2>
-<p><em>Figures to be added: per-case profiles (figs. 10–13) of uplift, horizontal displacement, geoid/potential, sea-surface, and the SLE result, VILMA vs. the SBK reference; the eustatic-sea-level time series.</em></p>
+<p><em>Figures to be added: per-case profiles (figs. 10–13) of uplift, horizontal displacement, geoid/potential, sea-surface, and the SLE result, VILMA2 vs. the SBK reference; the eustatic-sea-level time series.</em></p>
 <!--
 ![Case E2, fig. 10 profiles](figures/sle_E2_fig10.png)
 ![Eustatic sea level vs time](figures/sle_esl_series.png)
@@ -886,7 +886,7 @@ Martinec, Z., V. Klemann, W. van der Wal, et al. 2018. <span>“A Benchmark Stud
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1230,4 +1230,4 @@ Martinec, Z., V. Klemann, W. van der Wal, et al. 2018. <span>“A Benchmark Stud
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/benchmarks/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/benchmarks/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

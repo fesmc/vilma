@@ -1,75 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://fesmc.github.io/vilma/implementation.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/implementation.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/physics/rotation.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/physics/rotation.html</loc>
+    <lastmod>2026-10-07T16:37:24.475Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/physics/sea-level.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/physics/sea-level.html</loc>
+    <lastmod>2026-10-07T16:37:24.475Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/getting-started.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/getting-started.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/discretization/time-stepping.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/discretization/time-stepping.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/discretization/radial-fe.html</loc>
-    <lastmod>2026-09-29T09:05:32.196Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/discretization/radial-fe.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/benchmarks/disc.html</loc>
-    <lastmod>2026-09-29T09:05:32.196Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/benchmarks/disc.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/benchmarks/visc3d.html</loc>
-    <lastmod>2026-09-29T09:05:32.196Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/benchmarks/visc3d.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/benchmarks/index.html</loc>
-    <lastmod>2026-09-29T09:05:32.196Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/benchmarks/index.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/index.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/index.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/benchmarks/sea-level.html</loc>
-    <lastmod>2026-09-29T09:05:32.196Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/benchmarks/sea-level.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/benchmarks/love-numbers.html</loc>
-    <lastmod>2026-09-29T09:05:32.196Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/benchmarks/love-numbers.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/references.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/references.html</loc>
+    <lastmod>2026-10-07T16:37:24.475Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/discretization/solver.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/discretization/solver.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/discretization/spectral.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/discretization/spectral.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/physics/toroidal.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/physics/toroidal.html</loc>
+    <lastmod>2026-10-07T16:37:24.475Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/physics/rheology.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/physics/rheology.html</loc>
+    <lastmod>2026-10-07T16:37:24.475Z</lastmod>
   </url>
   <url>
-    <loc>https://fesmc.github.io/vilma/physics/governing-equations.html</loc>
-    <lastmod>2026-09-29T09:05:32.197Z</lastmod>
+    <loc>https://fesmc.github.io/vilma2/physics/governing-equations.html</loc>
+    <lastmod>2026-10-07T16:37:24.474Z</lastmod>
   </url>
 </urlset>

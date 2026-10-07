@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>The banded direct solver and performance – VILMA v2</title>
+<title>The banded direct solver and performance – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -44,9 +44,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -282,7 +282,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -364,7 +364,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -404,7 +404,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -552,7 +552,7 @@ window.Quarto = {
   <li><a href="#no-external-linear-algebra-dependency" id="toc-no-external-linear-algebra-dependency" class="nav-link" data-scroll-target="#no-external-linear-algebra-dependency">No external linear-algebra dependency</a></li>
   <li><a href="#performance-of-the-sle-driver" id="toc-performance-of-the-sle-driver" class="nav-link" data-scroll-target="#performance-of-the-sle-driver">Performance of the SLE driver</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/discretization/solver.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/discretization/solver.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -577,7 +577,7 @@ window.Quarto = {
 </header>
 
 
-<p>The per-degree saddle-point system is small, banded, and reused unchanged across all orders <span class="math inline">\(m\)</span>, all loads, and every time step. VILMA therefore solves it with a <strong>dependency-free, re-entrant, pivoted banded LU</strong> — factor once, solve many times — which is both faster and structurally simpler than the iterative solver used in early versions.</p>
+<p>The per-degree saddle-point system is small, banded, and reused unchanged across all orders <span class="math inline">\(m\)</span>, all loads, and every time step. VILMA2 therefore solves it with a <strong>dependency-free, re-entrant, pivoted banded LU</strong> — factor once, solve many times — which is both faster and structurally simpler than the iterative solver used in early versions.</p>
 <section id="why-a-banded-direct-solve-fits" class="level2">
 <h2 class="anchored" data-anchor-id="why-a-banded-direct-solve-fits">Why a banded direct solve fits</h2>
 <p>Laid out node-interleaved as <span class="math inline">\([U\ V\ F\mid\Pi]\)</span>, the operator has a <strong>half-bandwidth of <span class="math inline">\(\sim 6\)</span></strong>. Its entries span <span class="math inline">\(\sim 20\)</span> orders of magnitude (<span class="math inline">\(\mu r^2/h\)</span> versus the pressure couplings versus <span class="math inline">\(1/4\pi G\)</span>), so it is first <strong>geometric-mean row/column equilibrated</strong>. Two facts then make a direct band solve ideal:</p>
@@ -663,7 +663,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>The full sea-level benchmark (<span class="math inline">\(\ell_{\max}=128\)</span>, <span class="math inline">\(\sim 750\)</span> steps) thus runs in <strong>minutes rather than hours</strong>, which is what makes the <a href="../benchmarks/sea-level.html">Martinec (2018) SLE cases</a> feasible as routine validation. At VILMA-v1 resolution (SH degree 170) the same machinery applies.</p>
+<p>The full sea-level benchmark (<span class="math inline">\(\ell_{\max}=128\)</span>, <span class="math inline">\(\sim 750\)</span> steps) thus runs in <strong>minutes rather than hours</strong>, which is what makes the <a href="../benchmarks/sea-level.html">Martinec (2018) SLE cases</a> feasible as routine validation. At VILMA1 resolution (SH degree 170) the same machinery applies.</p>
 <div class="callout callout-style-default callout-tip callout-titled" title="Where this lives in the code">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -768,7 +768,7 @@ window.Quarto = {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1112,4 +1112,4 @@ window.Quarto = {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/discretization/solver.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/discretization/solver.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

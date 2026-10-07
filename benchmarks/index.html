@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Benchmarks – VILMA v2</title>
+<title>Benchmarks – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -301,7 +301,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -383,7 +383,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -423,7 +423,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -571,7 +571,7 @@ window.Quarto = {
   <li><a href="#how-to-read-the-rungs" id="toc-how-to-read-the-rungs" class="nav-link" data-scroll-target="#how-to-read-the-rungs">How to read the rungs</a></li>
   <li><a href="#per-benchmark-pages" id="toc-per-benchmark-pages" class="nav-link" data-scroll-target="#per-benchmark-pages">Per-benchmark pages</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/benchmarks/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/benchmarks/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -596,8 +596,8 @@ window.Quarto = {
 </header>
 
 
-<p>VILMA is validated against the <strong>published GIA community benchmarks</strong> — the Charles University / Spada et al.&nbsp;(2011) intercomparison <span class="citation" data-cites="Spada2011">(<a href="#ref-Spada2011" role="doc-biblioref">Spada et al. 2011</a>)</span> and the sea-level-equation intercomparison of Martinec et al.&nbsp;(2018) <span class="citation" data-cites="Martinec2018">(<a href="#ref-Martinec2018" role="doc-biblioref">Martinec et al. 2018</a>)</span>. Validation proceeds along a <strong>ladder</strong>: each rung is an independent benchmark that exercises one more piece of physics, so a failure localizes to the rung just added.</p>
-<p>The reference datasets are vendored in the repository under <code>data/benchmarks/</code> with full provenance and licensing in <code>data/benchmarks/PROVENANCE.md</code>. None of it is VILMA output; it is external reference data, so the validation tests are self-contained.</p>
+<p>VILMA2 is validated against the <strong>published GIA community benchmarks</strong> — the Charles University / Spada et al.&nbsp;(2011) intercomparison <span class="citation" data-cites="Spada2011">(<a href="#ref-Spada2011" role="doc-biblioref">Spada et al. 2011</a>)</span> and the sea-level-equation intercomparison of Martinec et al.&nbsp;(2018) <span class="citation" data-cites="Martinec2018">(<a href="#ref-Martinec2018" role="doc-biblioref">Martinec et al. 2018</a>)</span>. Validation proceeds along a <strong>ladder</strong>: each rung is an independent benchmark that exercises one more piece of physics, so a failure localizes to the rung just added.</p>
+<p>The reference datasets are vendored in the repository under <code>data/benchmarks/</code> with full provenance and licensing in <code>data/benchmarks/PROVENANCE.md</code>. None of it is VILMA2 output; it is external reference data, so the validation tests are self-contained.</p>
 <section id="summary-results" class="level2">
 <h2 class="anchored" data-anchor-id="summary-results">Summary results</h2>
 <table class="caption-top table">
@@ -669,7 +669,7 @@ window.Quarto = {
 <ul>
 <li><strong>Rungs 1–2</strong> isolate the <em>linear-algebra and radial physics</em>: the transform, then the per-degree elastic and fluid Love numbers. The fluid limit is an analytic anchor (<span class="math inline">\(h_j\to-(2j+1)/3\)</span>, <span class="math inline">\(k_j\to-1\)</span>); the elastic numbers are the stringent test, and they exposed the <a href="../benchmarks/love-numbers.html"><span class="math inline">\(U\)</span>–<span class="math inline">\(F\)</span> symmetry bug</a>.</li>
 <li><strong>Rung 3</strong> integrates the per-degree response over a spatial load (the disc) and adds the <em>time relaxation</em>, testing the spatial synthesis and the Maxwell stepper together against a spatial reference.</li>
-<li><strong>Rung 4</strong> turns on the full <em>self-consistent sea-level equation</em> — ocean function, mass conservation, coastline migration, flotation, and the sub-grid sloping coast — against the dedicated SLE intercomparison. This is the benchmark VILMA-v1 itself passed.</li>
+<li><strong>Rung 4</strong> turns on the full <em>self-consistent sea-level equation</em> — ocean function, mass conservation, coastline migration, flotation, and the sub-grid sloping coast — against the dedicated SLE intercomparison. This is the benchmark VILMA1 itself passed.</li>
 <li><strong>Rung 5</strong> (rotation) is implemented and coupled into the SLE, with the Liouville polar-motion solve checked against Spada test 3/2. It is on by default for real-Earth runs (off for the non-rotating benchmarks). <strong>Rung 6</strong> (laterally varying viscosity) is implemented in the full viscoelastic solver and exercised by unit tests, with cross-code validation ongoing. No community benchmark exercises the toroidal field; it is checked by internal consistency, symmetry and scaling tests (see <a href="../physics/toroidal.html#validation">Toroidal flow</a>).</li>
 </ul>
 <div class="callout callout-style-default callout-note callout-titled" title="Analytic vs. inter-code benchmarks">
@@ -794,7 +794,7 @@ Spada, G., V. R. Barletta, V. Klemann, et al. 2011. <span>“A Benchmark Study f
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1138,4 +1138,4 @@ Spada, G., V. R. Barletta, V. Klemann, et al. 2011. <span>“A Benchmark Study f
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/benchmarks/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/benchmarks/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

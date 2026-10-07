@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Installation and running – VILMA v2</title>
+<title>Installation and running – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -79,9 +79,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -317,7 +317,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -399,7 +399,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -439,7 +439,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -591,7 +591,7 @@ window.Quarto = {
   <li><a href="#running-with-runme" id="toc-running-with-runme" class="nav-link" data-scroll-target="#running-with-runme">Running with runme</a></li>
   <li><a href="#embedding-in-a-host-model" id="toc-embedding-in-a-host-model" class="nav-link" data-scroll-target="#embedding-in-a-host-model">Embedding in a host model</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/getting-started.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/getting-started.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -626,13 +626,13 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>VILMA v2 is not yet ready for use in a scientific production capacity. If you want to use VILMA for now, please contact Volker Klemann at GFZ.</p>
+<p>VILMA2 is not yet ready for use in a scientific production capacity. If you want to use VILMA1 for now, please contact Volker Klemann at GFZ.</p>
 </div>
 </div>
-<p>This page covers getting VILMA v2 built and running a forced simulation. The build is driven by <strong>configme</strong> (one source of machine/compiler truth) and runs are staged by <strong>runme</strong> (single simulations and ensembles, locally or on SLURM).</p>
+<p>This page covers getting VILMA2 built and running a forced simulation. The build is driven by <strong>configme</strong> (one source of machine/compiler truth) and runs are staged by <strong>runme</strong> (single simulations and ensembles, locally or on SLURM).</p>
 <section id="dependencies" class="level2">
 <h2 class="anchored" data-anchor-id="dependencies">Dependencies</h2>
-<p>VILMA needs only a small, well-established stack:</p>
+<p>VILMA2 needs only a small, well-established stack:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -684,7 +684,7 @@ window.Quarto = {
 <li><strong><code>&amp;vilma</code></strong>: the model’s physics and numerics. This is the record a host model fills in memory.</li>
 <li><strong><code>&amp;ctl</code></strong>: the standalone run itself: forcing, reference and output files, the time window, <code>i_eq</code>, online remapping and the restart path. A host model never reads it.</li>
 </ul>
-<p>The complete, documented <code>&amp;vilma</code> defaults are in <a href="https://github.com/fesmc/vilma/blob/main/input/vilma_defaults.nml"><code>input/vilma_defaults.nml</code></a> and are loaded automatically. A run configuration such as <a href="https://github.com/fesmc/vilma/blob/main/vilma.nml"><code>vilma.nml</code></a> (the default) or <a href="https://github.com/fesmc/vilma/blob/main/examples/deglac_lgm.nml"><code>examples/deglac_lgm.nml</code></a> carries the full <code>&amp;ctl</code> group plus only the <code>&amp;vilma</code> parameters it overrides (the yelmo <code>defaults_file</code> convention):</p>
+<p>The complete, documented <code>&amp;vilma</code> defaults are in <a href="https://github.com/fesmc/vilma2/blob/main/input/vilma_defaults.nml"><code>input/vilma_defaults.nml</code></a> and are loaded automatically. A run configuration such as <a href="https://github.com/fesmc/vilma2/blob/main/vilma.nml"><code>vilma.nml</code></a> (the default) or <a href="https://github.com/fesmc/vilma2/blob/main/examples/deglac_lgm.nml"><code>examples/deglac_lgm.nml</code></a> carries the full <code>&amp;ctl</code> group plus only the <code>&amp;vilma</code> parameters it overrides (the yelmo <code>defaults_file</code> convention):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./bin/vilma.x</span> examples/deglac_lgm.nml    <span class="co"># default: vilma.nml</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A few conventions worth knowing:</p>
 <ul>
@@ -696,7 +696,7 @@ window.Quarto = {
 <li><strong>Reference state / spin-up</strong> is controlled by <code>i_eq</code> (<code>&amp;ctl</code>), <code>equil_time_max</code>, <code>equil_rate_tol</code> (LGM-memory spin-up cap, relaxing to bed-stationary equilibrium), <code>pre_spinup_1d</code> (run a cheap 1-D pre-equilibration first), and <code>restart_in_file</code> (<code>&amp;ctl</code>; resume full state, interpolated up if lower-resolution).</li>
 <li><strong>3-D viscosity</strong> is enabled with <code>l_visc_3d = .true.</code> and a lateral <code>log10(eta)</code> field (<code>visc_3d_file</code>); <code>visc3d_tol</code> sets which elements are treated as genuinely 3-D.</li>
 <li><strong>Rotational feedback</strong> (<code>rotation</code>) is <strong>on by default</strong> for real-Earth runs; set <code>rotation = .false.</code> for the non-rotating community benchmarks. The secular Love number in the Liouville equation defaults to the model’s own fluid limit; <code>rotation_k_s</code> (&gt; 0) prescribes it and <code>rotation_c_minus_a</code> sets C − A (default 2.63e35 kg m²).</li>
-<li><strong>Backend</strong> is chosen by <code>solver</code>: <code>"v2"</code> (this model, default) or <code>"v1"</code>, the VILMA-v1 library behind the same driver, forcing and output for like-for-like comparison (requires a build with <code>vilma_v1=1</code>).</li>
+<li><strong>Backend</strong> is chosen by <code>solver</code>: <code>"v2"</code> (this model, default) or <code>"v1"</code>, the VILMA1 library behind the same driver, forcing and output for like-for-like comparison (requires a build with <code>vilma_v1=1</code>).</li>
 </ul>
 </section>
 <section id="the-drivers" class="level2">
@@ -727,7 +727,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>A complete worked configuration — an LGM → present-day deglaciation forced by the Tarasov ice/bed reconstruction — is in <a href="https://github.com/fesmc/vilma/blob/main/examples/deglac_lgm.nml"><code>examples/deglac_lgm.nml</code></a>.</p>
+<p>A complete worked configuration — an LGM → present-day deglaciation forced by the Tarasov ice/bed reconstruction — is in <a href="https://github.com/fesmc/vilma2/blob/main/examples/deglac_lgm.nml"><code>examples/deglac_lgm.nml</code></a>.</p>
 </section>
 <section id="running-with-runme" class="level2">
 <h2 class="anchored" data-anchor-id="running-with-runme">Running with runme</h2>
@@ -848,7 +848,7 @@ window.Quarto = {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1177,8 +1177,8 @@ window.Quarto = {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link" aria-label="VILMA v2">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">VILMA v2</span>
+      <a href="./index.html" class="pagination-link" aria-label="VILMA2">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">VILMA2</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
@@ -1192,4 +1192,4 @@ window.Quarto = {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/getting-started.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/getting-started.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

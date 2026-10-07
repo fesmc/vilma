@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>The sea-level equation – VILMA v2</title>
+<title>The sea-level equation – VILMA2</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -63,9 +63,9 @@ div.csl-indent {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-b4fe353c20efd084fc4a7e897873478f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -301,7 +301,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">VILMA v2</span>
+    <span class="navbar-title">VILMA2</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -383,7 +383,7 @@ window.Quarto = {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/fesmc/vilma"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/fesmc/vilma2"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -423,7 +423,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">VILMA v2</span></a>
+ <span class="menu-text">VILMA2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -573,7 +573,7 @@ window.Quarto = {
   <li><a href="#ocean-function-flotation-and-the-coast" id="toc-ocean-function-flotation-and-the-coast" class="nav-link" data-scroll-target="#ocean-function-flotation-and-the-coast">Ocean function, flotation, and the coast</a></li>
   <li><a href="#reference-frame-and-degree-1" id="toc-reference-frame-and-degree-1" class="nav-link" data-scroll-target="#reference-frame-and-degree-1">Reference frame and degree 1</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/physics/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/physics/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -598,7 +598,7 @@ window.Quarto = {
 </header>
 
 
-<p>Surface loading and sea level are coupled: ice and ocean water deform and re-gravitate the solid Earth, which moves the geoid and the solid surface, which redistributes the ocean water, which changes the load. VILMA solves this self-consistently with the <strong>migrating-coastline sea-level equation (SLE)</strong> in the pseudo-spectral form of <span class="citation" data-cites="KMM2005">Kendall et al. (<a href="#ref-KMM2005" role="doc-biblioref">2005</a>)</span>, driven by the viscoelastic response operator.</p>
+<p>Surface loading and sea level are coupled: ice and ocean water deform and re-gravitate the solid Earth, which moves the geoid and the solid surface, which redistributes the ocean water, which changes the load. VILMA2 solves this self-consistently with the <strong>migrating-coastline sea-level equation (SLE)</strong> in the pseudo-spectral form of <span class="citation" data-cites="KMM2005">Kendall et al. (<a href="#ref-KMM2005" role="doc-biblioref">2005</a>)</span>, driven by the viscoelastic response operator.</p>
 <section id="the-response-operator" class="level2">
 <h2 class="anchored" data-anchor-id="the-response-operator">The response operator</h2>
 <p>The SLE is built on a thin abstraction. A <strong>response operator</strong> maps a spectral surface-mass load <span class="math inline">\(\sigma_{\ell m}\)</span> to the surface uplift <span class="math inline">\(u_{\ell m}\)</span> and geoid height <span class="math inline">\(N_{\ell m}\)</span>:</p>
@@ -704,7 +704,7 @@ S \;=\; C\cdot\bigl(N - u + \Delta\phi\bigr),
 <td><code>"cm"</code> (default)</td>
 <td>CM frame: the solid Earth translates (geocenter motion)</td>
 <td>CM (<span class="math inline">\(F_1(a) = 0\)</span>, i.e.&nbsp;<span class="math inline">\(k_1=-1\)</span>)</td>
-<td>real-Earth runs; as VILMA-v1</td>
+<td>real-Earth runs; as VILMA1</td>
 </tr>
 <tr class="even">
 <td><code>"cf"</code></td>
@@ -714,7 +714,7 @@ S \;=\; C\cdot\bigl(N - u + \Delta\phi\bigr),
 </tr>
 </tbody>
 </table>
-<p>In <code>"cm"</code> the CM condition is imposed once, on the solved state, so displacement and geoid refer to the same frame and the relative sea level carries the degree-1 fingerprint of geocenter motion <span class="citation" data-cites="Blewitt2003">(<a href="#ref-Blewitt2003" role="doc-biblioref">Blewitt 2003</a>)</span>. This reduces the disc residual against VILMA-v1 about fivefold. <code>"cf"</code> is the <em>mixed</em> convention of the Spada (2011) disc benchmark, displacement in a CE-like gauge (<span class="math inline">\(h_1\approx 0\)</span>) and geoid in CM (<span class="math inline">\(N_1 = 0\)</span>), under which <code>rsl</code> has no degree-1 part. Degrees <span class="math inline">\(\ge 2\)</span> are identical in both frames. See the <a href="../benchmarks/disc.html">disc benchmark</a>.</p>
+<p>In <code>"cm"</code> the CM condition is imposed once, on the solved state, so displacement and geoid refer to the same frame and the relative sea level carries the degree-1 fingerprint of geocenter motion <span class="citation" data-cites="Blewitt2003">(<a href="#ref-Blewitt2003" role="doc-biblioref">Blewitt 2003</a>)</span>. This reduces the disc residual against VILMA1 about fivefold. <code>"cf"</code> is the <em>mixed</em> convention of the Spada (2011) disc benchmark, displacement in a CE-like gauge (<span class="math inline">\(h_1\approx 0\)</span>) and geoid in CM (<span class="math inline">\(N_1 = 0\)</span>), under which <code>rsl</code> has no degree-1 part. Degrees <span class="math inline">\(\ge 2\)</span> are identical in both frames. See the <a href="../benchmarks/disc.html">disc benchmark</a>.</p>
 <div class="callout callout-style-default callout-tip callout-titled" title="Where this lives in the code">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -827,7 +827,7 @@ Kendall, R. A., J. X. Mitrovica, and G. A. Milne. 2005. <span>“On Post-Glacial
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma\/");
+        var filterRegex = new RegExp("https:\/\/fesmc\.github\.io\/vilma2\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1171,4 +1171,4 @@ Kendall, R. A., J. X. Mitrovica, and G. A. Milne. 2005. <span>“On Post-Glacial
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma/blob/main/physics/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fesmc/vilma2/blob/main/physics/sea-level.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/fesmc/vilma2/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

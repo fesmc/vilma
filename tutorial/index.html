@@ -702,12 +702,12 @@
 <div class="page">
 
 <header class="hero">
-  <p class="eyebrow"><span class="dot"></span>VILMA · Interactive tutorial</p>
+  <p class="eyebrow"><span class="dot"></span>VILMA2 · Interactive tutorial</p>
   <h1 class="title">The <em>deforming</em> Earth, in six equations.</h1>
-  <p class="deck">VILMA solves the coupled viscoelastic and sea-level response of a rotating Earth to a time-varying surface load. This tutorial walks through the six equations at the model's core and the numerical choices behind each.</p>
+  <p class="deck">VILMA2 solves the coupled viscoelastic and sea-level response of a rotating Earth to a time-varying surface load. This tutorial walks through the six equations at the model's core and the numerical choices behind each.</p>
   <div class="mode-help">
     <div><span class="tag intuition">Physics</span>The formulation. Governing equations, physical meaning of the terms, and the working assumptions.</div>
-    <div><span class="tag vilma">Implementation</span>How VILMA discretizes and solves it. Schemes, tolerances, and the modules where each piece lives.</div>
+    <div><span class="tag vilma">Implementation</span>How VILMA2 discretizes and solves it. Schemes, tolerances, and the modules where each piece lives.</div>
   </div>
 </header>
 
@@ -798,21 +798,21 @@
     <details class="prelim">
       <summary>Farrell–Clark sea-level equation <span class="kind origin">Origin</span></summary>
       <div class="prelim-body">
-        <p><em class="name">William E. Farrell</em> derived the elastic-Earth Green's functions for surface loads in 1972. <em class="name">James A. Clark</em> and Farrell extended the framework to the coupled ice–ocean–solid Earth problem in <em>On postglacial sea level</em> (Geophys. J. R. Astron. Soc., 1976). Their integral formulation is the basis for the sea-level equation solved in VILMA and most other modern GIA codes.</p>
+        <p><em class="name">William E. Farrell</em> derived the elastic-Earth Green's functions for surface loads in 1972. <em class="name">James A. Clark</em> and Farrell extended the framework to the coupled ice–ocean–solid Earth problem in <em>On postglacial sea level</em> (Geophys. J. R. Astron. Soc., 1976). Their integral formulation is the basis for the sea-level equation solved in VILMA2 and most other modern GIA codes.</p>
       </div>
     </details>
 
     <details class="prelim">
       <summary>PREM · Preliminary Reference Earth Model <span class="kind origin">Origin</span></summary>
       <div class="prelim-body">
-        <p><em class="name">Adam M. Dziewonski</em> and <em class="name">Don L. Anderson</em> published PREM in 1981 as a one-dimensional radial Earth model constrained by seismic phase arrivals, normal-mode data, and mass and inertia constraints. It gives density and elastic parameters as a function of depth. In VILMA, PREM supplies the elastic profile and a viscosity structure is overlaid separately.</p>
+        <p><em class="name">Adam M. Dziewonski</em> and <em class="name">Don L. Anderson</em> published PREM in 1981 as a one-dimensional radial Earth model constrained by seismic phase arrivals, normal-mode data, and mass and inertia constraints. It gives density and elastic parameters as a function of depth. In VILMA2, PREM supplies the elastic profile and a viscosity structure is overlaid separately.</p>
       </div>
     </details>
 
     <details class="prelim">
       <summary>SHTns · spherical-harmonic transform library <span class="kind origin">Origin</span></summary>
       <div class="prelim-body">
-        <p><em class="name">Nathanaël Schaeffer</em> released SHTns (2013) as a highly optimized C library for spherical-harmonic transforms, using fast Legendre-transform algorithms and SIMD-friendly memory layouts. VILMA uses SHTns for every forward and inverse transform in the load-response pipeline.</p>
+        <p><em class="name">Nathanaël Schaeffer</em> released SHTns (2013) as a highly optimized C library for spherical-harmonic transforms, using fast Legendre-transform algorithms and SIMD-friendly memory layouts. VILMA2 uses SHTns for every forward and inverse transform in the load-response pipeline.</p>
       </div>
     </details>
 
@@ -898,7 +898,7 @@
 
   <div class="tab-content" data-tab="vilma" hidden>
     <div class="prose">
-      <p>The real mantle is a stack of Maxwell bodies, one per radial layer, each with its own <em>(ρ, μ, η)</em>. VILMA reads this depth profile from a plain-text table selected by the <code>earth</code> parameter.</p>
+      <p>The real mantle is a stack of Maxwell bodies, one per radial layer, each with its own <em>(ρ, μ, η)</em>. VILMA2 reads this depth profile from a plain-text table selected by the <code>earth</code> parameter.</p>
       <div><span class="code-pointer">earth_models/Bagge.dat</span><span class="code-pointer">earth_models/M3-L70-V01.dat</span><span class="code-pointer">earth="PREM"</span></div>
       <p>Each spherical-harmonic degree <em>l</em> then acquires its own spectrum of relaxation times rather than a single <em>τ<sub>M</sub></em>. Short-wavelength (high-<em>l</em>) loads stress only the shallow layers and relax on centennial timescales. Long-wavelength (low-<em>l</em>) loads sample the deep mantle and relax on glacial timescales.</p>
       <h3>Where in the code</h3>
@@ -976,12 +976,12 @@
 
   <div class="tab-content" data-tab="vilma" hidden>
     <div class="prose">
-      <p>VILMA uses the SHTns library for the forward and inverse spherical-harmonic transforms. The truncation degree <em>l</em><sub>max</sub> is a run-time parameter set in the namelist.</p>
+      <p>VILMA2 uses the SHTns library for the forward and inverse spherical-harmonic transforms. The truncation degree <em>l</em><sub>max</sub> is a run-time parameter set in the namelist.</p>
       <div><span class="code-pointer">&amp;vilma lmax=128</span><span class="code-pointer">SHT_QUICK_INIT=1</span></div>
       <p>Doubling <em>l</em><sub>max</sub> quadruples the number of coefficients — approximately <em>(l</em><sub>max</sub><em> + 1)</em>² — and multiplies the transform cost by roughly a factor of five. The typical trade-off is:</p>
       <ul>
         <li><code>lmax=64</code> — around 0.8 s per 100 yr of simulation; resolves patterns down to about 300 km.</li>
-        <li><code>lmax=128</code> — around 4.4 s per 100 yr; about 150 km resolution, matching VILMA-v1-parity runs.</li>
+        <li><code>lmax=128</code> — around 4.4 s per 100 yr; about 150 km resolution, matching VILMA1-parity runs.</li>
       </ul>
       <p>The environment variable <code>SHT_QUICK_INIT=1</code> skips the SHTns internal transform-plan auto-tune, reducing startup from around 136 s to under one second. We set it in production runs and disable it only when benchmarking transform kernels.</p>
       <h3>Where in the code</h3>
@@ -1056,9 +1056,9 @@
 
   <div class="tab-content" data-tab="vilma" hidden>
     <div class="prose">
-      <p>VILMA offers three schemes for the viscoelastic response, selected by the <code>earth_scheme</code> parameter:</p>
+      <p>VILMA2 offers three schemes for the viscoelastic response, selected by the <code>earth_scheme</code> parameter:</p>
       <ul>
-        <li><code>ve</code> — classical normal-mode decomposition. The layered problem is diagonalized into <em>j</em> = 1..<em>N</em><sub>modes</sub> exponentials per degree. This is the reference implementation and matches VILMA-v1 to around 0.1&nbsp;%.</li>
+        <li><code>ve</code> — classical normal-mode decomposition. The layered problem is diagonalized into <em>j</em> = 1..<em>N</em><sub>modes</sub> exponentials per degree. This is the reference implementation and matches VILMA1 to around 0.1&nbsp;%.</li>
         <li><code>fe</code> — a finite-element radial solve driven directly by the load. It is cheaper per step and carries no mode-truncation error, but requires sub-stepping for stability at short <em>τ</em>.</li>
       </ul>
       <p>Our default configuration combines <code>fe</code> with a three-dimensional layer split. On standard deglaciation runs it is roughly 111× faster than trapezoidal-<code>ve</code> at comparable accuracy.</p>
@@ -1306,7 +1306,7 @@
 
 <footer class="foot">
   <h3>Further reading</h3>
-  <p>The full implementation lives in the VILMA Fortran codebase — see the modules <code>vilma</code>, <code>vilma_response</code>, <code>vilma_sle</code>, <code>vilma_rotation</code>, and <code>vilma_timestep</code>. Reference material is maintained in the Quarto documentation on branch <code>docs-quarto</code>.</p>
+  <p>The full implementation lives in the VILMA2 Fortran codebase — see the modules <code>vilma</code>, <code>vilma_response</code>, <code>vilma_sle</code>, <code>vilma_rotation</code>, and <code>vilma_timestep</code>. Reference material is maintained in the Quarto documentation on branch <code>docs-quarto</code>.</p>
   <p>Key references: Farrell and Clark (1976) for the sea-level equation; Peltier (1974) for the load Love numbers; Martinec et al. (Cases C2, D3, E2, F1) for the SLE benchmarks; Spada (2011) for the rotational-feedback benchmarks.</p>
 </footer>
 
